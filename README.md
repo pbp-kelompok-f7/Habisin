@@ -39,7 +39,8 @@ dapat menambahkan resep ke beberapa list kategori (_bookmarks_), seperti _favour
 
 - Saved Meals Tracker & History (Ahsan Rifqi Prasetyo)
 
-Merencanakan apa yang akan dimasak serta meninjau kembali masakan apa saja yang sudah berhasil dieksekusi sebelumnya.
+Melihat porsi makanan yang terselamatkan serta masakan yang sudah berhasil dieksekusi sebelumnya. Daftar riwayat bisa 
+diubah dan dihapus oleh pengguna.
 
 - Landing Page & Community / Personal Reviews (Umar Faiz Rahman)
 
