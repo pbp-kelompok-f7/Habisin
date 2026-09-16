@@ -5,14 +5,14 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 </div>
 
-Habisin adalah website yang dirancang untuk membantu masyarakat mengurangi limbah makanan rumah tangga. 
-Pengguna cukup memasukkan data sisa bahan makanan di kulkas mereka, lalu sistem akan merekomendasikan resep masakan 
-yang relevan. Website ini memberikan manfaat bagi pengguna untuk menghemat pengeluaran sekaligus mengurangi limbah 
+Habisin adalah website yang dirancang untuk membantu masyarakat mengurangi limbah makanan rumah tangga.
+Pengguna cukup memasukkan data sisa bahan makanan di kulkas mereka, lalu sistem akan merekomendasikan resep masakan
+yang relevan. Website ini memberikan manfaat bagi pengguna untuk menghemat pengeluaran sekaligus mengurangi limbah
 makanan yang mereka hasilkan.
 
-Platform ini mengintegrasikan Spoonacular API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide 
-masakan, tetapi juga dapat mengelola _fridge inventory_ mereka, menyimpan resep, melacak porsi makanan yang 
-terselamatkan, hingga saling berbagi _review_ antarpengguna. 
+Platform ini mengintegrasikan Spoonacular API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide
+masakan, tetapi juga dapat mengelola _fridge inventory_ mereka, menyimpan resep, melacak porsi makanan yang
+terselamatkan, hingga saling berbagi _review_ antarpengguna.
 
 ## Anggota Kelompok
 1. Aditya Hamka Pratama (2506552752)
@@ -22,28 +22,29 @@ terselamatkan, hingga saling berbagi _review_ antarpengguna.
 5. Umar Faiz Rahman (2506616711)
 
 ## Daftar Modul
-- Authentication & Profile (Amelinda Fedora Faragusti)
+- Authentication, Profile, & Fridge Inventory (Aditya Hamka Pratama)
 
-Bertanggung jawab atas keamanan akses pengguna (registrasi dan login) serta pengelolaan identitas (profile) dan 
-preferensi personal mereka.
+Bertanggung jawab atas keamanan akses pengguna (registrasi dan login) serta pengelolaan identitas (profile) dan
+preferensi personal mereka. Selain itu, juga mengelola ketersediaan bahan makanan sisa yang dimiliki pengguna di rumah
+untuk nantinya digunakan sebagai input pencarian.
 
-- Fridge Inventory (Aditya Hamka Pratama)
+- Meals Planner (Amelinda Fedora Faragusti)
 
-Mengelola ketersediaan bahan makanan sisa yang dimiliki pengguna di rumah untuk nantinya digunakan sebagai input
-pencarian.
+Membantu pengguna merencanakan makanan sehari-hari berdasarkan resep yang sudah disimpan.
 
 - Recipe Discovery & Bookmarks (Risyad Athaya Muhammad)
 
-Melakukan pencarian berdasarkan bahan yang diinput oleh pengguna (atau ada di fridge inventory). Selain itu, juga 
+Melakukan pencarian berdasarkan bahan yang diinput oleh pengguna (atau ada di fridge inventory). Selain itu, juga
 dapat menambahkan resep ke beberapa list kategori (_bookmarks_), seperti _favourites_ dan _want to cook_.
 
 - Saved Meals Tracker & History (Ahsan Rifqi Prasetyo)
 
-Merencanakan apa yang akan dimasak serta meninjau kembali masakan apa saja yang sudah berhasil dieksekusi sebelumnya.
+Melihat porsi makanan yang terselamatkan serta masakan yang sudah berhasil dieksekusi sebelumnya. Daftar riwayat bisa
+diubah dan dihapus oleh pengguna.
 
 - Landing Page & Community / Personal Reviews (Umar Faiz Rahman)
 
-Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman yang memfasilitasi pengguna untuk menilai resep 
+Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman yang memfasilitasi pengguna untuk menilai resep
 masakan yang sudah mereka coba buat.
 
 ## Public API
