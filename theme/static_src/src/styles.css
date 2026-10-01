@@ -8,3 +8,12 @@
   * the scope of this path.
   */
 @source "../../../**/*.{html,py,js}";
+
+@theme {
+    --color-brand-green-dark: #09332C;
+    --color-brand-green: #2E4B3C;
+    --color-brand-orange: #F0531C;
+    --color-brand-orange-light: #FFA74F;
+    --color-brand-beige: #F7DFBA;
+    --color-brand-cream: #F7EDDA;
+}
