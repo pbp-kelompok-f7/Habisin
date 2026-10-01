@@ -15,10 +15,18 @@
     --color-brand-orange: #F0531C;
     --color-brand-orange-light: #FFA74F;
     --color-brand-beige: #F7DFBA;
-    --color-brand-cream: #F7EDDA;
+    --color-background: #F7EDDA;
+    --color-border-color: #D9D9D9;
 
     --font-heading: "Bricolage Grotesque", sans-serif;
     --font-body: "DM Sans", sans-serif;
+
+    --text-900: 100px;
+    --text-800: 90px;
+    --text-600: 70px;
+    --text-500: 60px;
+    --text-300: 36px;
+    --text-200: 24px;
 }
 
 @layer base {

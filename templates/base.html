@@ -15,22 +15,11 @@
     {% tailwind_css %}
     {% block meta %} {% endblock meta %}
   </head>
-  <body>
-    <header class="">
-      <div class="">
-        <a href="{% url 'home:show_home' %}" class="">
-          <img src="static/svg/logo.svg" alt="Logo of Habisin" />
-        </a>
-        <nav>
-          <a class="header-text" href="">Test</a>
-        </nav>
-      </div>
-    </header>
+  <body class="bg-background">
+    {% include 'components/navbar.html' %}
+
     {% block content %} {% endblock content %}
-    <footer class="">
-      <div class="">
-        <p>&copy; 2026 Habisin.</p>
-      </div>
-    </footer>
+
+    {% include 'components/footer.html' %}
   </body>
 </html>
