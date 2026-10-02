@@ -1,6 +1,7 @@
+{% load static %}
 <header class="flex flex-row w-full px-8 py-4 items-center justify-between border-b-2 border-border-color">
   <a href="{% url 'home:show_home' %}" class="">
-    <img src="static/svg/logo.svg" alt="Logo of Habisin" height="24" />
+    <img src="{% static '/svg/logo.svg' %}" alt="Logo of Habisin" height="24" />
   </a>
   <nav class="flex flex-row items-center gap-4">
     <a class="header-text" href="">Sign In</a>
