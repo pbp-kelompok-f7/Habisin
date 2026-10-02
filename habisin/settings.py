@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "theme",
     "home",
     "discovery",
+    "saved_meals",
 ]
 
 TAILWIND_APP_NAME = 'theme'

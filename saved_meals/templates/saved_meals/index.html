@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Saved Meals & History - Habisin{% endblock %}
+
+{% block content %}
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+  <!-- Header / Title Section -->
+  <header class="flex flex-col gap-1">
+    <h1 class="font-heading font-extrabold text-4xl sm:text-5xl text-[#1E2922] tracking-tight">
+      Saved Meals &amp; History
+    </h1>
+    <p class="text-base sm:text-lg text-gray-600 font-medium">
+      Menu yang disimpan!
+    </p>
+  </header>
+
+  <!-- Metric Impact Cards -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6" aria-label="Statistik Dampak">
+    <!-- Card 1: Porsi yang diselamatkan -->
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E9DFCE] flex flex-col justify-between">
+      <h2 class="font-bold text-gray-800 text-sm sm:text-base">
+        Porsi yang diselamatkan
+      </h2>
+      <div class="flex items-baseline gap-3 mt-4">
+        <span class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
+          {{ total_portions }}
+        </span>
+        <span class="text-xs sm:text-sm text-gray-500 font-medium leading-snug">
+          &plusmn; {{ total_weight }} kg sisa bahan<br />diselamatkan
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Resep yang sudah dituntaskan -->
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E9DFCE] flex flex-col justify-between">
+      <h2 class="font-bold text-gray-800 text-sm sm:text-base">
+        Resep yang sudah dituntaskan
+      </h2>
+      <div class="mt-4">
+        <span class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
+          {{ recipes_finished }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: Protein & kalori terselamatkan -->
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E9DFCE] flex flex-col justify-between">
+      <h2 class="font-bold text-gray-800 text-sm sm:text-base">
+        Protein &amp; kalori terselamatkan
+      </h2>
+      <div class="flex items-baseline gap-6 mt-4">
+        <span class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
+          {{ total_protein }}gr
+        </span>
+        <span class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
+          {{ total_calories }}kkal
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controls Row (Tabs, Search, and Add Button) -->
+  <section class="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
+    <!-- Tab Controls -->
+    <div class="flex items-center gap-2" role="tablist">
+      <button
+        id="tab-saved"
+        type="button"
+        onclick="switchTab('saved')"
+        class="tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 shadow-sm bg-[#344C3D] text-white"
+        aria-selected="true"
+      >
+        Saved Meals
+      </button>
+      <button
+        id="tab-history"
+        type="button"
+        onclick="switchTab('history')"
+        class="tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 bg-[#EDD9B8] text-[#344C3D] hover:bg-[#e4cca7]"
+        aria-selected="false"
+      >
+        History
+      </button>
+    </div>
+
+    <!-- Search & Add Button -->
+    <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+      <!-- Search Bar -->
+      <div class="relative flex items-center flex-1 md:flex-initial">
+        <svg
+          class="w-4 h-4 text-gray-500 absolute left-3 pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search"
+          oninput="handleSearch(this.value)"
+          class="pl-9 pr-4 py-2 w-full md:w-56 bg-white border border-[#D9D0BE] rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#344C3D] shadow-sm transition"
+        />
+      </div>
+
+      <!-- Add Button -->
+      <button
+        type="button"
+        class="bg-[#EDD9B8] hover:bg-[#e4cca7] text-[#344C3D] font-bold px-5 py-2 rounded-full text-sm shadow-sm transition flex items-center gap-1 flex-shrink-0"
+        title="Tambah resep simpanan baru"
+      >
+        <span class="text-base font-extrabold leading-none">+</span>
+        <span>Add</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Saved Meals Grid Section -->
+  <section id="saved-section" class="flex flex-col gap-4">
+    <div id="saved-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for meal in saved_meals %}
+      <article
+        class="meal-card bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E9DFCE] flex flex-col transition hover:shadow-md"
+        data-title="{{ meal.recipe_name|lower }}"
+      >
+        <!-- Meal Image -->
+        <div class="w-full h-52 overflow-hidden bg-amber-50">
+          <img
+            src="{{ meal.image_url|default:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80' }}"
+            alt="{{ meal.recipe_name }}"
+            class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+
+        <!-- Meal Details -->
+        <div class="p-5 flex flex-col gap-3">
+          <h3 class="font-heading font-bold text-lg text-[#1E2922] truncate" title="{{ meal.recipe_name }}">
+            {{ meal.recipe_name }}
+          </h3>
+
+          <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-1">
+            <div class="flex items-center gap-4">
+              <!-- Cooking Time -->
+              <span class="flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ meal.cooking_time_minutes }} menit
+              </span>
+
+              <!-- Energy / Timer Badge -->
+              <span class="flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+                </svg>
+                {{ meal.cooking_time_minutes }} menit
+              </span>
+            </div>
+
+            <!-- Favorite Heart Button -->
+            <button
+              type="button"
+              onclick="toggleFavorite(this)"
+              class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-400 transition"
+              aria-label="Tandai favorit"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="col-span-full py-12 text-center text-gray-500">
+        Belum ada menu yang disimpan. Klik "+ Add" untuk menambahkan resep baru.
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- History Grid Section (Initially Hidden) -->
+  <section id="history-section" class="hidden flex flex-col gap-4">
+    <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for meal in history_meals %}
+      <article
+        class="meal-card bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E9DFCE] flex flex-col transition hover:shadow-md"
+        data-title="{{ meal.recipe_name|lower }}"
+      >
+        <!-- Meal Image -->
+        <div class="w-full h-52 overflow-hidden bg-amber-50">
+          <img
+            src="{{ meal.image_url|default:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80' }}"
+            alt="{{ meal.recipe_name }}"
+            class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+
+        <!-- Meal Details -->
+        <div class="p-5 flex flex-col gap-3">
+          <h3 class="font-heading font-bold text-lg text-[#1E2922] truncate" title="{{ meal.recipe_name }}">
+            {{ meal.recipe_name }}
+          </h3>
+
+          <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-1">
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ meal.cooking_time_minutes }} menit
+              </span>
+              <span class="flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z" />
+                </svg>
+                {{ meal.cooking_time_minutes }} menit
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onclick="toggleFavorite(this)"
+              class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-400 transition"
+              aria-label="Tandai favorit"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="col-span-full py-12 text-center text-gray-500">
+        Belum ada riwayat masakan yang selesai.
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+
+<script>
+  function switchTab(tab) {
+    const savedTab = document.getElementById('tab-saved');
+    const historyTab = document.getElementById('tab-history');
+    const savedSection = document.getElementById('saved-section');
+    const historySection = document.getElementById('history-section');
+
+    if (tab === 'saved') {
+      savedTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 shadow-sm bg-[#344C3D] text-white";
+      savedTab.setAttribute('aria-selected', 'true');
+
+      historyTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 bg-[#EDD9B8] text-[#344C3D] hover:bg-[#e4cca7]";
+      historyTab.setAttribute('aria-selected', 'false');
+
+      savedSection.classList.remove('hidden');
+      historySection.classList.add('hidden');
+    } else {
+      historyTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 shadow-sm bg-[#344C3D] text-white";
+      historyTab.setAttribute('aria-selected', 'true');
+
+      savedTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 bg-[#EDD9B8] text-[#344C3D] hover:bg-[#e4cca7]";
+      savedTab.setAttribute('aria-selected', 'false');
+
+      historySection.classList.remove('hidden');
+      savedSection.classList.add('hidden');
+    }
+  }
+
+  function handleSearch(query) {
+    const q = query.toLowerCase().trim();
+    const activeSection = document.querySelector('section#saved-section:not(.hidden), section#history-section:not(.hidden)');
+    if (!activeSection) return;
+
+    const cards = activeSection.querySelectorAll('.meal-card');
+    cards.forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      if (title.includes(q)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleFavorite(btn) {
+    const svg = btn.querySelector('svg');
+    const isFav = btn.getAttribute('data-favorite') === 'true';
+
+    if (isFav) {
+      btn.setAttribute('data-favorite', 'false');
+      btn.classList.remove('text-red-500', 'border-red-400');
+      btn.classList.add('text-gray-400', 'border-gray-300');
+      svg.setAttribute('fill', 'none');
+    } else {
+      btn.setAttribute('data-favorite', 'true');
+      btn.classList.add('text-red-500', 'border-red-400');
+      btn.classList.remove('text-gray-400', 'border-gray-300');
+      svg.setAttribute('fill', 'currentColor');
+    }
+  }
+</script>
+{% endblock content %}
