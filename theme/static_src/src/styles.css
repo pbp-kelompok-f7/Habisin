@@ -16,23 +16,35 @@
     --color-brand-orange-light: #FFA74F;
     --color-brand-beige: #F7DFBA;
     --color-background: #F7EDDA;
+    --color-background-white: #F3F3F3;
     --color-border-color: #D9D9D9;
 
     --font-heading: "Bricolage Grotesque", sans-serif;
     --font-body: "DM Sans", sans-serif;
 
-    --text-900: 100px;
-    --text-800: 90px;
-    --text-600: 70px;
-    --text-500: 60px;
+    --text-900: 96px;
+    --text-700: 72px;
+    --text-600: 64px;
+    --text-500: 56px;
     --text-300: 36px;
     --text-200: 16px;
 }
 
 @layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
     body {
         font-family: var(--font-body);
         font-size: var(--text-200);
+    }
+
+    main {
+        padding-block: 2.5rem;
+        padding-inline: 7.5rem;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -45,7 +57,7 @@
     }
 
     h2 {
-        font-size: var(--text-800);
+        font-size: var(--text-700);
     }
 
     h3 {
