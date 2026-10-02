@@ -1,10 +1,21 @@
 {% load static %}
-<header class="flex flex-row w-full px-8 py-4 items-center justify-between border-b-2 border-border-color">
+<header class="flex flex-row w-full px-8 py-4 gap-8 items-center justify-between border-b-2 border-border-color">
   <a href="{% url 'home:show_home' %}" class="">
     <img src="{% static '/svg/logo.svg' %}" alt="Logo of Habisin" height="24" />
   </a>
-  <nav class="flex flex-row items-center gap-4">
-    <a class="header-text" href="">Sign In</a>
-    <a class="header-text" href="">Sign Up</a>
+  <nav class="flex flex-row flex-1 items-center justify-between">
+    <div class="flex flex-row items-center">
+      {% if request.resolver_match.url_name == 'show_home' %}
+      <a class="font-bold text-background p-4 rounded-xl bg-brand-green-dark" href="{% url 'home:show_home' %}">Beranda</a>
+      <a class="font-bold text-brand-green-dark p-4" href="{% url 'discovery:show_discovery' %}">Resep</a>
+      {% elif request.resolver_match.url_name == 'show_discovery' %}
+      <a class="font-bold text-brand-green-dark p-4" href="{% url 'home:show_home' %}">Beranda</a>
+      <a class="font-bold text-background p-4 rounded-xl bg-brand-green-dark" href="{% url 'discovery:show_discovery' %}">Resep</a>
+      {% endif %}
+    </div>
+    <div class="flex flex-row items-center gap-4">
+      <a class="font-bold text-brand-green-dark" href="">Sign In</a>
+      <a class="font-bold text-brand-green-dark" href="">Sign Up</a>
+    </div>
   </nav>
 </header>
