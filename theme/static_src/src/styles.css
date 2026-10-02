@@ -26,15 +26,37 @@
     --text-600: 70px;
     --text-500: 60px;
     --text-300: 36px;
-    --text-200: 24px;
+    --text-200: 16px;
 }
 
 @layer base {
     body {
         font-family: var(--font-body);
+        font-size: var(--text-200);
     }
 
     h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-heading);
+        font-weight: bold;
+    }
+
+    h1 {
+        font-size: var(--text-900);
+    }
+
+    h2 {
+        font-size: var(--text-800);
+    }
+
+    h3 {
+        font-size: var(--text-600);
+    }
+
+    h4 {
+        font-size: var(--text-500);
+    }
+
+    h5 {
+        font-size: var(--text-300);
     }
 }
