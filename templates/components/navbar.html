@@ -1,21 +1,73 @@
 {% load static %}
-<header class="flex flex-row w-full px-8 py-4 gap-8 items-center justify-between border-b-2 border-border-color">
-  <a href="{% url 'home:show_home' %}" class="">
-    <img src="{% static '/svg/logo.svg' %}" alt="Logo of Habisin" height="24" />
+<header class="flex flex-row w-full px-6 md:px-12 py-4 gap-6 items-center justify-between border-b border-[#E5DEC9] bg-background">
+  <!-- Brand Logo -->
+  <a href="{% url 'home:show_home' %}" class="flex items-center flex-shrink-0">
+    <img src="{% static '/svg/logo.svg' %}" alt="Logo of Habisin" class="h-8 w-auto" />
   </a>
-  <nav class="flex flex-row flex-1 items-center justify-between">
-    <div class="flex flex-row items-center">
-      {% if request.resolver_match.url_name == 'show_home' %}
-      <a class="font-bold text-background p-4 rounded-xl bg-brand-green-dark" href="{% url 'home:show_home' %}">Beranda</a>
-      <a class="font-bold text-brand-green-dark p-4" href="{% url 'discovery:show_discovery' %}">Resep</a>
-      {% elif request.resolver_match.url_name == 'show_discovery' %}
-      <a class="font-bold text-brand-green-dark p-4" href="{% url 'home:show_home' %}">Beranda</a>
-      <a class="font-bold text-background p-4 rounded-xl bg-brand-green-dark" href="{% url 'discovery:show_discovery' %}">Resep</a>
-      {% endif %}
+
+  <!-- Navigation Menu Links -->
+  <nav class="flex flex-row flex-1 items-center justify-between ml-4">
+    <div class="flex flex-row items-center gap-1 sm:gap-2">
+      <!-- Kulkas -->
+      <a
+        href="#"
+        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'fridge' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+      >
+        Kulkas
+      </a>
+
+      <!-- Resep -->
+      <a
+        href="{% url 'discovery:show_discovery' %}"
+        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'discovery' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+      >
+        Resep
+      </a>
+
+      <!-- Bookmark -->
+      <a
+        href="#"
+        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'bookmark' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+      >
+        Bookmark
+      </a>
+
+      <!-- Meals Planner -->
+      <a
+        href="#"
+        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'meals_planner' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+      >
+        Meals Planner
+      </a>
+
+      <!-- Saved Meals -->
+      <a
+        href="{% url 'saved_meals:show_saved_meals' %}"
+        class="font-bold text-sm sm:text-base px-4 sm:px-5 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'saved_meals' or request.resolver_match.url_name == 'show_saved_meals' %}bg-brand-green-dark text-background shadow-sm{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+      >
+        Saved Meals
+      </a>
     </div>
-    <div class="flex flex-row items-center gap-4">
-      <a class="font-bold text-brand-green-dark" href="">Sign In</a>
-      <a class="font-bold text-brand-green-dark" href="">Sign Up</a>
+
+    <!-- Right Profile Avatar / Auth -->
+    <div class="flex flex-row items-center gap-3">
+      {% if user.is_authenticated %}
+      <div class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm">
+        <img
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}&backgroundColor=b6e3f4"
+          alt="{{ user.username }}"
+          class="w-full h-full object-cover"
+        />
+      </div>
+      {% else %}
+      <a href="#" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="User Profile">
+        <img
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=HabisinUser&backgroundColor=b6e3f4"
+          alt="Profile Avatar"
+          class="w-full h-full object-cover"
+        />
+      </a>
+      {% endif %}
     </div>
   </nav>
 </header>
