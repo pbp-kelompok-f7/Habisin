@@ -22,11 +22,11 @@
     --font-heading: "Bricolage Grotesque", sans-serif;
     --font-body: "DM Sans", sans-serif;
 
-    --text-900: 96px;
-    --text-700: 72px;
-    --text-600: 64px;
-    --text-500: 56px;
-    --text-300: 36px;
+    --text-900: 68px;
+    --text-700: 64px;
+    --text-600: 48px;
+    --text-500: 36px;
+    --text-300: 24px;
     --text-200: 16px;
 }
 
@@ -44,7 +44,7 @@
 
     main {
         padding-block: 2.5rem;
-        padding-inline: 7.5rem;
+        padding-inline: 2.5rem;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -53,22 +53,25 @@
     }
 
     h1 {
-        font-size: var(--text-900);
-    }
-
-    h2 {
-        font-size: var(--text-700);
-    }
-
-    h3 {
         font-size: var(--text-600);
     }
 
-    h4 {
+    h2 {
         font-size: var(--text-500);
     }
 
-    h5 {
+    h3 {
         font-size: var(--text-300);
+    }
+
+    h4 {
+        font-size: var(--text-200);
+    }
+
+    @media (min-width: 768px) {
+        main {
+            padding-block: 2.5rem;
+            padding-inline: 7.5rem;
+        }
     }
 }
