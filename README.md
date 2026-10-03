@@ -58,6 +58,56 @@ Untuk dokumentasinya dapat dilihat melalui link berikut: https://spoonacular.com
   melihat profil orang lain, memasukkan ingredients ke _fridge inventory_, dan save history pembuatan meals.
 
 ## Link Deployment PWS & Figma
-PWS: **[PWS Link]**
+PWS: **http://risyad-athaya-habisin.pws.cs.ui.ac.id/**
 
 Figma: **https://www.figma.com/design/bCa4vaUjhrcnm6TIb0zDP1/UI-UX?node-id=0-1&t=2KoM5TMBpsDAKhss-1**
+
+## Menjalankan project lokal (Windows PowerShell)
+
+Jalankan dari root repository `Habisin-repo`, tempat `manage.py` berada:
+
+```powershell
+py -m venv env
+.\env\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+.\env\Scripts\python.exe manage.py migrate
+.\env\Scripts\python.exe manage.py runserver
+```
+
+Isi `SECRET_KEY` di `.env` dengan nilai acak untuk lingkungan lokal. File `.env`,
+virtual environment, database lokal, dan log server tidak masuk Git.
+Buka http://127.0.0.1:8000/ setelah server berjalan.
+
+### CSS dan Tailwind
+
+Tailwind mengatur tampilan komponen bersama dan modul lain. Halaman beranda memakai
+CSS di `home/static/home/css/landing.css`. CSS Tailwind hasil build sudah disimpan
+di `theme/static/css/dist/styles.css`, sehingga menjalankan server tidak perlu Node/npm.
+
+Kalau mengubah kelas Tailwind atau `theme/static_src/src/styles.css`, build ulang:
+
+```powershell
+.\env\Scripts\python.exe manage.py tailwind install
+.\env\Scripts\python.exe manage.py tailwind build
+```
+
+Commit CSS hasil build bersama perubahan template agar tampilannya tersedia di PWS.
+
+### Push dan deployment
+
+```powershell
+git push origin feature/landing-page
+```
+
+Branch fitur digunakan untuk review sebelum masuk `main`. Push GitHub belum otomatis
+men-deploy PWS karena repo ini belum memiliki workflow deployment. Pasang remote `pws`
+sesuai Project Command di dashboard PWS. Setelah perubahan digabung ke `main`:
+
+```powershell
+git switch main
+git pull --ff-only origin main
+git push pws main:master
+```
+
+PWS membutuhkan `SECRET_KEY` serta variabel database yang sesuai ketika
+`PRODUCTION=True`. `Procfile` menjalankan migrasi dan Gunicorn untuk deployment.

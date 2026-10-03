@@ -122,3 +122,7 @@ sftp-config.json
 
 # macOS
 .DS_Store
+# Local server logs, collected static assets, and Tailwind binaries
+.local/
+staticfiles/
+.tailwindcss/

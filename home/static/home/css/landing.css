@@ -1,0 +1,75 @@
+:root{--bg:#f8ecdc;--green:#0f3b2e;--btn:#2d4a3e;--orange:#f9a650;--red:#f25a1e;--text:#4d6559;--line:#e4d8c6;--foot:#0a2f28;--muted:#3d6354}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--green);font-family:'DM Sans',sans-serif;line-height:1.3}
+h1,h2,h3,.brand{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+.container{max-width:1062px;margin:0 auto;padding:0 16px}
+.center{text-align:center}
+.btn,.pill{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:10px;font-size:17px;font-weight:500;border:1px solid var(--line)}
+.btn-dark,.pill.active{background:var(--btn);color:#fff;border-color:var(--btn)}
+.btn-outline{background:#f4e9da;color:var(--green);border-color:#d4cabb}
+.btn-orange{background:var(--orange);color:var(--green);border-color:var(--orange);height:52px;padding:0 17px}
+.btn-lg{height:52px}
+.pill{border-color:transparent;height:51px}
+.nav{border-bottom:1px solid #d9cdbb}
+.nav-in{display:flex;align-items:center;height:71px;gap:38px}
+.brand{display:flex;align-items:center;gap:10px;font-size:29px;font-weight:800;color:var(--green)}
+.brand img{height:46px;width:auto}
+.menu{display:flex;gap:14px;margin-right:auto}
+.auth{display:flex;gap:14px}.auth .btn{padding:0 18px;font-size:16px}
+.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding-top:92px;padding-bottom:120px}
+.eyebrow{color:var(--orange);font:800 28px 'Bricolage Grotesque';letter-spacing:-.01em;margin-bottom:14px}
+h1{font-size:58px;line-height:1.1;font-weight:800;max-width:520px}
+.lead{margin:22px 0 28px;font-size:19px;line-height:1.25;color:var(--text);max-width:495px}
+.cta-row{display:flex;gap:14px}
+.proof{display:flex;align-items:center;gap:6px;margin-top:32px;font-size:14px;color:var(--text)}
+.proof img{height:36px;width:auto;margin-right:4px}.proof strong{color:var(--green)}
+.hero-art{position:relative;width:426px;height:426px;justify-self:end;margin-right:18px}
+.hero-art img{position:relative;z-index:2;width:100%;height:100%;object-fit:cover;border-radius:28px}
+.hero-art::before,.hero-art::after{content:"";position:absolute;border-radius:30px}
+.hero-art::before{background:var(--green);inset:24px -32px 0 24px;transform:rotate(2deg);z-index:0}
+.hero-art::after{background:var(--red);inset:36px -12px -34px 14px;transform:rotate(1.5deg);z-index:1}
+h2{font-size:48px;font-weight:800;line-height:1.1}
+.sub{font-size:18px;color:var(--text);margin-top:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:2px solid var(--line);border-radius:28px}
+.steps{padding-top:70px;padding-bottom:110px}.steps .grid3{margin-top:38px}
+.step{padding:26px;min-height:208px}
+.num{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#f6ddbb;font:700 20px 'DM Sans'}
+.step h3{margin:18px 0 8px;font:700 18px 'DM Sans';letter-spacing:0}
+.step p{font-size:14px;color:#1d2b25;max-width:260px}
+.recipes{padding-bottom:120px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:38px}
+.recipe{overflow:hidden;border-radius:22px}
+.recipe img{width:100%;height:222px;object-fit:cover}
+.recipe .body{padding:18px 22px 20px}
+.recipe h3{font:700 21px 'DM Sans';letter-spacing:0}
+.meta{display:flex;align-items:center;gap:16px;margin-top:10px;font-size:12px;color:var(--text)}
+.meta span{display:flex;align-items:center;gap:6px}
+svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.heart{margin-left:auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid #d9cdbb;background:#fff;color:var(--green);cursor:pointer}
+.heart svg{width:16px;height:16px}
+.banner{display:flex;justify-content:space-between;align-items:center;gap:32px;padding:42px 64px 44px;border-radius:28px;color:#f8ecdc;background:linear-gradient(100deg,var(--green) 25%,#7a6b45 100%)}
+.banner h2{font-size:44px;max-width:520px;line-height:1.18}
+.banner p{margin-top:14px;font-size:18px;max-width:430px;line-height:1.25}
+.banner .btn{margin-right:-14px;white-space:nowrap}
+.footer{margin-top:110px;background:var(--foot);padding:62px 0 40px;color:#f8ecdc}
+.foot-grid{display:grid;grid-template-columns:359px 271px 1fr}
+.footer .brand{color:#f8ecdc;font-size:32px}.footer .brand img{height:56px}
+.tag{margin-top:10px;max-width:260px;color:var(--muted);font-size:18px;line-height:1.25}
+.footer h4{font:700 18px 'DM Sans';margin:6px 0 22px}
+.footer .foot-grid a:not(.brand){display:block;margin-bottom:14px;color:var(--muted);font-size:18px}
+.copy{text-align:center;margin-top:48px;color:var(--muted);font-size:18px}
+@media(max-width:860px){
+  .menu,.auth .btn-outline{display:none}.nav-in{justify-content:space-between}
+  .hero{grid-template-columns:1fr;padding-top:48px;padding-bottom:70px}
+  h1{font-size:42px}h2,.banner h2{font-size:34px}
+  .hero-art{width:min(100%,360px);height:auto;aspect-ratio:1;justify-self:center;margin:0 auto}
+  .grid3,.foot-grid{grid-template-columns:1fr}
+  .head,.banner{flex-direction:column;align-items:flex-start;gap:20px}.banner{padding:36px 28px}.banner .btn{margin:0}
+}
+
+/* Keep shared Tailwind main spacing out of this page layout. */
+main{padding:0}
+button{font:inherit}
