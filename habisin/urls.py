@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 
@@ -23,5 +24,9 @@ urlpatterns = [
     path('', include('home.urls')),
     path('discovery/', include('discovery.urls')),
     path('saved-meals/', include('saved_meals.urls')),
-    path("__reload__/", include("django_browser_reload.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path("__reload__/", include("django_browser_reload.urls")),
+    ]
