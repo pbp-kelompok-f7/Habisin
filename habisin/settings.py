@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-$=030chp5cnk*y^ll(o-i*sngkp_y10o6jofl8m(t=b=)0@76t"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("PRODUCTION", "False").lower() == "false"
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "risyad-athaya-habisin.pws.cs.ui.ac.id"]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tailwind",
-    "django_browser_reload",
     "theme",
     "home",
     "discovery",
     "saved_meals",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["django_browser_reload"]
 
 TAILWIND_APP_NAME = 'theme'
 
@@ -61,9 +63,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'django_browser_reload.middleware.BrowserReloadMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+if DEBUG:
+    MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
 
 ROOT_URLCONF = "habisin.urls"
 
