@@ -12,7 +12,7 @@
   <div class="container nav-in">
     <a href="{% url 'home:show_home' %}" class="brand"><img src="{% static 'home/img/logo.png' %}" alt="">Habisin</a>
     <nav class="menu"><a href="{% url 'home:show_home' %}" class="pill active">Beranda</a><a href="#resep" class="pill">Resep</a></nav>
-    <div class="auth"><a href="#" class="btn btn-outline">Sign In</a><a href="#" class="btn btn-dark">Sign Up</a></div>
+    <div class="auth"><a href="{% url 'authentication:login' %}" class="btn btn-outline">Sign In</a><a href="{% url 'authentication:register' %}" class="btn btn-dark">Sign Up</a></div>
   </div>
 </header>
 {% endblock %}
@@ -24,7 +24,7 @@
     <p class="eyebrow">Kurangi sisa makanan di rumah</p>
     <h1>Masak dari yang ada, habiskan tanpa sisa.</h1>
     <p class="lead">Catat isi kulkasmu, dapatkan rekomendasi resep dari bahan yang tersisa, dan rencanakan menu mingguan. Hemat uang, kurangi limbah makanan.</p>
-    <div class="cta-row"><a href="#" class="btn btn-dark btn-lg">Mulai Gratis</a><a href="#resep" class="btn btn-outline btn-lg">Lihat Resep</a></div>
+    <div class="cta-row"><a href="{% url 'authentication:register' %}" class="btn btn-dark btn-lg">Mulai Gratis</a><a href="#resep" class="btn btn-outline btn-lg">Lihat Resep</a></div>
     <p class="proof"><img src="{% static 'home/img/avatars.png' %}" alt="">Dipakai <strong>2.000+ keluarga</strong> Indonesia</p>
   </div>
   <div class="hero-art"><img src="{% static 'home/img/hero.png' %}" alt="Sayuran segar"></div>
@@ -65,7 +65,7 @@
 <section class="container">
   <div class="banner">
     <div><h2>Mulai dari sisa bahan di kulkasmu hari ini.</h2><p>Daftar gratis dan selamatkan makanan pertamamu dalam 5 menit.</p></div>
-    <a href="#" class="btn btn-orange">Daftar Sekarang</a>
+    <a href="{% url 'authentication:register' %}" class="btn btn-orange">Daftar Sekarang</a>
   </div>
 </section>
 </main>
