@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block lang %}id{% endblock %}
+{% block title %}Meals Planner | Habisin{% endblock %}
+{% block meta %}
+<link rel="stylesheet" href="{% static 'meals_planner/planner.css' %}">
+<script defer src="{% static 'meals_planner/planner.js' %}"></script>
+{% endblock %}
+
+{% block navbar %}
+<header class="planner-header">
+  <div class="planner-header-inner">
+    <a class="planner-brand" href="{% url 'home:show_home' %}" aria-label="Habisin, beranda"><img src="{% static 'svg/logo.svg' %}" alt="Habisin" width="170" height="52"></a>
+    <nav class="planner-nav" aria-label="Navigasi utama">
+      <a href="#" aria-disabled="true" title="Fitur kulkas segera hadir">Kulkas</a>
+      <a href="{% url 'discovery:show_discovery' %}">Resep</a>
+      <a href="#" aria-disabled="true" title="Fitur bookmark segera hadir">Bookmark</a>
+      <a class="is-active" href="{% url 'meals_planner:show_planner' %}" aria-current="page">Meals Planner</a>
+      <a href="{% url 'saved_meals:show_saved_meals' %}">Saved Meals</a>
+    </nav>
+    <img class="planner-avatar" src="{% static 'meals_planner/avatar.png' %}" alt="" width="56" height="56">
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<main class="planner" data-update-url="{% url 'meals_planner:update_meal' %}" data-selected-day="{{ selected_day }}">
+  <h1>Meals Planner</h1>
+  <p class="planner-subtitle" id="planner-subtitle">{% if selected_day == state.today %}Menu untuk hari ini!{% else %}Menu untuk hari {{ selected_name }}!{% endif %}</p>
+
+  <nav class="planner-days" aria-label="Pilih hari">
+    {% for day in days %}
+    <a href="?day={{ day.index }}" class="planner-day{% if day.index == selected_day %} is-selected{% endif %}" data-day="{{ day.index }}" data-name="{{ day.name }}"{% if day.index == selected_day %} aria-current="date"{% endif %}>
+      {{ day.short }}{% if day.index == state.today %}<span class="today-label"> · hari ini</span>{% endif %}
+    </a>
+    {% endfor %}
+  </nav>
+
+  <div class="planner-layout">
+    <section class="meal-list" aria-label="Menu harian">
+      {% for slot in slots %}
+      <article class="meal-card{% if not slot.recipe %} is-empty{% endif %}" data-slot="{{ slot.id }}" data-label="{{ slot.label }}">
+        <div class="meal-copy">
+          <h2>{{ slot.label }}</h2>
+          <p class="meal-name"{% if not slot.recipe %} hidden{% endif %}>{{ slot.recipe.name }}</p>
+          <button class="meal-add" type="button" data-edit="{{ slot.id }}"{% if slot.recipe %} hidden{% endif %}>+ Tambah menu {{ slot.label|lower }}</button>
+        </div>
+        <div class="meal-actions"{% if not slot.recipe %} hidden{% endif %}>
+          <button class="meal-change" type="button" data-edit="{{ slot.id }}" aria-label="Ganti menu {{ slot.label|lower }}">Ganti</button>
+          <button class="meal-remove" type="button" data-remove="{{ slot.id }}" aria-label="Hapus menu {{ slot.label|lower }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button>
+        </div>
+      </article>
+      {% endfor %}
+    </section>
+
+    <aside class="planner-summary" aria-label="Ringkasan mingguan">
+      <section class="planner-panel shopping-panel">
+        <h2>Bahan yang perlu dibeli</h2>
+        <ul class="ingredient-list" id="ingredient-list">
+          {% for ingredient in state.ingredients %}<li>{{ ingredient }}</li>{% endfor %}
+        </ul>
+        <p class="shopping-empty" id="shopping-empty"{% if state.ingredients %} hidden{% endif %}>Tambahkan menu untuk melihat bahan belanjamu.</p>
+        <p class="panel-note">Dihitung dari semua menu yang kamu rencanakan minggu ini.</p>
+      </section>
+
+      <section class="planner-panel progress-panel">
+        <h2>Progres minggu ini</h2>
+        <p class="progress-total"><strong id="weekly-total">{{ state.total }}</strong><span>dari 21 waktu makan</span></p>
+        <nav class="progress-days" aria-label="Progres menu per hari">
+          {% for day in days %}
+          <a href="?day={{ day.index }}" data-progress-day="{{ day.index }}"{% if day.index == selected_day %} class="is-selected" aria-current="date"{% endif %}>{{ day.short }} <span>{{ day.count }}/3</span></a>
+          {% endfor %}
+        </nav>
+      </section>
+      <p class="planner-example" id="planner-example"{% if not state.example %} hidden{% endif %}>Contoh rencana untuk memulai. Sesuaikan menu dengan seleramu.</p>
+    </aside>
+  </div>
+  <p class="planner-status" id="planner-status" role="status" aria-live="polite"></p>
+  <noscript><p class="planner-noscript">Aktifkan JavaScript untuk menambah, mengganti, dan menghapus menu.</p></noscript>
+</main>
+
+<dialog class="recipe-dialog" id="recipe-dialog" aria-labelledby="recipe-dialog-title" aria-describedby="recipe-dialog-description">
+  <div class="dialog-heading">
+    <div><p class="dialog-eyebrow" id="recipe-dialog-day"></p><h2 id="recipe-dialog-title">Pilih menu</h2></div>
+    <button class="dialog-close" type="button" aria-label="Tutup pilihan menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button>
+  </div>
+  <p id="recipe-dialog-description">Pilih resep untuk melengkapi rencana makanmu.</p>
+  <form id="recipe-form">
+    {% csrf_token %}
+    <label class="recipe-search-label" for="recipe-search">Cari resep</label>
+    <input id="recipe-search" class="recipe-search" type="search" placeholder="Cari nama resep atau bahan..." autocomplete="off">
+    <div class="recipe-options">
+      {% for recipe in recipes %}
+      <button class="recipe-option" type="button" data-recipe="{{ recipe.id }}" data-search="{{ recipe.name|lower }} {{ recipe.ingredients|join:' ' }}">
+        <img src="{{ recipe.image_url }}" width="88" height="76" alt="">
+        <span class="recipe-option-copy"><strong>{{ recipe.name }}</strong><span>{{ recipe.minutes }} menit · {{ recipe.ingredients|join:', ' }}</span></span>
+        <span class="recipe-option-plus" aria-hidden="true">+</span>
+      </button>
+      {% endfor %}
+    </div>
+    <p id="recipe-no-results" hidden>Resep belum ditemukan. Coba nama bahan lain.</p>
+    <p class="dialog-error" id="dialog-error" role="alert"></p>
+  </form>
+</dialog>
+{{ state|json_script:"planner-state" }}
+{{ recipes|json_script:"planner-recipes" }}
+{% endblock %}
+
+{% block footer %}<footer class="planner-footer"><span>© {% now 'Y' %} Habisin.</span></footer>{% endblock %}
