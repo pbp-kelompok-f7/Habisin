@@ -5,7 +5,6 @@ h1,h2,h3,.brand{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02
 a{text-decoration:none;color:inherit}
 img{display:block;max-width:100%}
 .container{width:100%;max-width:1296px;margin:0 auto;padding:0 24px}
-main{padding:0}
 .center{text-align:center}
 .btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:10px;font-size:17px;font-weight:500;border:1px solid var(--line)}
 .btn-dark{background:var(--btn);color:#fff;border-color:var(--btn)}
@@ -63,21 +62,14 @@ svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-l
 .banner h2{font-size:44px;max-width:520px;line-height:1.18}
 .banner p{margin-top:14px;font-size:18px;max-width:430px;line-height:1.25}
 .banner .btn{margin-right:-14px;white-space:nowrap}
-.footer{margin-top:110px;background:var(--foot);padding:62px 0 40px;color:#f8ecdc}
-.foot-grid{display:grid;grid-template-columns:359px 271px 1fr}
-.footer .brand{color:#f8ecdc;font-size:32px}.footer .brand img{height:56px}
-.tag{margin-top:10px;max-width:260px;color:var(--muted);font-size:18px;line-height:1.25}
-.footer h4{font:700 18px 'DM Sans';margin:6px 0 22px}
-.footer .foot-grid a:not(.brand){display:block;margin-bottom:14px;color:var(--muted);font-size:18px}
-.copy{text-align:center;margin-top:48px;color:var(--muted);font-size:18px}
 @media(max-width:860px){
   .menu,.auth .btn-outline{display:none}.nav-in{justify-content:space-between}
   .hero{grid-template-columns:1fr;padding-top:48px;padding-bottom:70px}
   h1{font-size:42px}h2,.banner h2{font-size:34px}
   .hero-art{width:min(100%,360px);height:auto;aspect-ratio:1;justify-self:center;margin:0 auto}
-  .grid3,.foot-grid{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
   .head,.banner{flex-direction:column;align-items:flex-start;gap:20px}.banner{padding:36px 28px}.banner .btn{margin:0}
 }
 
-main{padding:0}
+main{padding:0 0 110px}
 button{font:inherit}

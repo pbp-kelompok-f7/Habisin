@@ -78,16 +78,3 @@
 </section>
 </main>
 {% endblock %}
-
-{% block footer %}
-<footer class="footer">
-  <div class="container">
-    <div class="foot-grid">
-      <div><a href="{% url 'home:show_home' %}" class="brand"><img src="{% static 'home/img/logo-footer.png' %}" alt="">Habisin</a><p class="tag">Masak dari yang ada, habiskan tanpa sisa.</p></div>
-      <div><h4>FITUR</h4><a href="#">Kulkas</a><a href="{% url 'discovery:show_discovery' %}">Resep</a><a href="{% url 'meals_planner:show_planner' %}">Meals Planner</a><a href="{% url 'saved_meals:show_saved_meals' %}">Saved Meals</a></div>
-      <div><h4>TENTANG</h4><a href="#">Tentang Kami</a><a href="#">Blog</a><a href="#">Kentang</a></div>
-    </div>
-    <p class="copy">© 2026 Habisin. Semua hak dilindungi.</p>
-  </div>
-</footer>
-{% endblock %}
