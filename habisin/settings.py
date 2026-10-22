@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "discovery",
     "saved_meals",
     "meals_planner",
+    "authentication",
 ]
 
 if DEBUG:

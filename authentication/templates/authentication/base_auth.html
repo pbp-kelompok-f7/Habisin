@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% block auth_title %}Habisin{% endblock %}{% endblock %}
+
+{# Halaman auth tidak memakai navbar dan footer #}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<main class="min-h-screen grid md:grid-cols-2 items-center gap-8 lg:gap-20 px-5 py-6 md:px-8 md:py-3 lg:px-12 bg-background text-brand-green-dark">
+  <div class="relative h-56 md:h-auto md:self-stretch md:min-h-[calc(100vh-1.5rem)] rounded-2xl overflow-hidden bg-[#cdbfa6]">
+    <img src="{% static 'img/pizza.png' %}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+  </div>
+
+  <section class="w-full max-w-md justify-self-center">
+    <div class="flex items-center justify-center">
+      <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-14">
+    </div>
+    {% block auth_content %}{% endblock %}
+  </section>
+</main>
+{% endblock content %}
