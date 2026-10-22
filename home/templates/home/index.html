@@ -9,6 +9,7 @@
 
 {% block navbar %}
 <header class="lp-nav">
+<div class="site-container lp-nav-in">
   <a href="{% url 'home:show_home' %}" class="lp-brand"><img src="{% static 'home/img/LOGO.svg' %}" alt="">Habisin</a>
   <nav class="lp-menu-wrap">
     <div class="lp-menu">
@@ -20,6 +21,7 @@
       <a href="{% url 'authentication:register' %}" class="lp-link is-active">Sign Up</a>
     </div>
   </nav>
+</div>
 </header>
 {% endblock %}
 
