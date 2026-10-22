@@ -8,21 +8,6 @@
 <script defer src="{% static 'meals_planner/planner.js' %}"></script>
 {% endblock %}
 
-{% block navbar %}
-<header class="planner-header">
-  <div class="planner-header-inner">
-    <a class="planner-brand" href="{% url 'home:show_home' %}" aria-label="Habisin, beranda"><img src="{% static 'svg/logo.svg' %}" alt="Habisin" width="170" height="52"></a>
-    <nav class="planner-nav" aria-label="Navigasi utama">
-      <a href="#" aria-disabled="true" title="Fitur kulkas segera hadir">Kulkas</a>
-      <a href="{% url 'discovery:show_discovery' %}">Resep</a>
-      <a href="#" aria-disabled="true" title="Fitur bookmark segera hadir">Bookmark</a>
-      <a class="is-active" href="{% url 'meals_planner:show_planner' %}" aria-current="page">Meals Planner</a>
-      <a href="{% url 'saved_meals:show_saved_meals' %}">Saved Meals</a>
-    </nav>
-    <img class="planner-avatar" src="{% static 'meals_planner/avatar.png' %}" alt="" width="56" height="56">
-  </div>
-</header>
-{% endblock %}
 
 {% block content %}
 <main class="planner" data-update-url="{% url 'meals_planner:update_meal' %}" data-selected-day="{{ selected_day }}">
