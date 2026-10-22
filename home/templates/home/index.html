@@ -7,6 +7,22 @@
 <link rel="stylesheet" href="{% static 'home/css/landing.css' %}">
 {% endblock %}
 
+{% block navbar %}
+<header class="lp-nav">
+  <a href="{% url 'home:show_home' %}" class="lp-brand"><img src="{% static 'home/img/logo.png' %}" alt="">Habisin</a>
+  <nav class="lp-menu-wrap">
+    <div class="lp-menu">
+      <a href="{% url 'home:show_home' %}" class="lp-link is-active">Beranda</a>
+      <a href="#resep" class="lp-link">Resep</a>
+    </div>
+    <div class="lp-auth">
+      <a href="{% url 'authentication:login' %}" class="lp-link lp-outline">Sign In</a>
+      <a href="{% url 'authentication:register' %}" class="lp-link is-active">Sign Up</a>
+    </div>
+  </nav>
+</header>
+{% endblock %}
+
 {% block content %}
 <main>
 <section class="container hero">
