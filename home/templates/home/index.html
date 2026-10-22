@@ -7,16 +7,6 @@
 <link rel="stylesheet" href="{% static 'home/css/landing.css' %}">
 {% endblock %}
 
-{% block navbar %}
-<header class="nav">
-  <div class="container nav-in">
-    <a href="{% url 'home:show_home' %}" class="brand"><img src="{% static 'home/img/logo.png' %}" alt="">Habisin</a>
-    <nav class="menu"><a href="{% url 'home:show_home' %}" class="pill active">Beranda</a><a href="#resep" class="pill">Resep</a></nav>
-    <div class="auth"><a href="{% url 'authentication:login' %}" class="btn btn-outline">Sign In</a><a href="{% url 'authentication:register' %}" class="btn btn-dark">Sign Up</a></div>
-  </div>
-</header>
-{% endblock %}
-
 {% block content %}
 <main>
 <section class="container hero">
