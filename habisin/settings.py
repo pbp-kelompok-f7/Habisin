@@ -156,3 +156,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
+LOGIN_URL = "authentication:login"
+LOGIN_REDIRECT_URL = "discovery:show_discovery"
+LOGOUT_REDIRECT_URL = "authentication:login"
