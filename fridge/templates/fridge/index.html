@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kulkas | Habisin{% endblock %}
+
+{% block content %}
+<main class="text-brand-green-dark pb-54">
+
+  <!-- Judul, tab lokasi, pencarian -->
+  <div class="flex flex-wrap items-center gap-6">
+    <h1>Kulkas</h1>
+
+    <nav class="flex border border-border-color" aria-label="Lokasi penyimpanan">
+      {% for key, label in tabs %}
+      <a href="?tab={{ key }}{% if q %}&q={{ q|urlencode }}{% endif %}"
+         class="px-6 py-3 text-xl font-bold transition-colors {% if key == tab %}bg-[#F6DDB6]{% else %}hover:bg-[#F6DDB6]/50{% endif %}"
+         {% if key == tab %}aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+
+    <form method="get" class="relative w-full md:w-72 md:ml-auto" role="search">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 size-6 text-brand-green-dark pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" name="q" value="{{ q }}" placeholder="Search" aria-label="Cari bahan"
+             class="w-full h-12 pl-14 pr-4 rounded-full border-2 border-border-color bg-transparent text-lg placeholder-gray-400 focus-visible:outline-none focus-visible:border-brand-green">
+    </form>
+  </div>
+
+  <!-- Daftar bahan -->
+  {% if items %}
+  <ul class="mt-12 grid md:grid-cols-2 gap-5">
+    {% for item in items %}
+    <li class="flex items-center justify-between gap-4 rounded-3xl bg-white px-8 py-5 shadow-md">
+      <div>
+        <p class="text-base uppercase text-[#5F7568]">{{ item.amount }} {{ item.unit }}</p>
+        <p class="text-2xl font-bold text-brand-green">{{ item.name }}</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <button type="button" class="px-5 py-2 rounded-lg border-2 border-border-color text-base transition-colors hover:bg-[#F6DDB6] cursor-pointer">Update</button>
+        <button type="button" aria-label="Hapus {{ item.name }}"
+                class="grid place-items-center size-11 rounded-full border-2 border-border-color transition-colors hover:bg-[#E8532B] hover:border-[#E8532B] hover:text-white cursor-pointer">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="mt-16 text-center text-xl text-[#7C8C80]">
+    {% if q %}Tidak ada bahan "{{ q }}" di {{ tab_label }}.{% else %}Belum ada bahan di {{ tab_label }}.{% endif %}
+  </p>
+  {% endif %}
+
+</main>
+{% endblock content %}
