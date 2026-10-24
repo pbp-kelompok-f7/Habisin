@@ -111,3 +111,21 @@ git push pws main:master
 
 PWS membutuhkan `SECRET_KEY` serta variabel database yang sesuai ketika
 `PRODUCTION=True`. `Procfile` menjalankan migrasi dan Gunicorn untuk deployment.
+
+## Meals Planner
+
+Buka `/meals-planner/` untuk menyusun sarapan, makan siang, dan makan malam pada
+Senin sampai Minggu. Pilih hari, lalu tambah/ganti resep atau hapus menu dengan
+tombol silang. Daftar bahan dan progres dihitung ulang setiap menu berubah.
+
+Kunjungan pertama berisi empat contoh menu yang bisa diedit. Rencana disimpan di
+sesi browser dan dimulai kosong saat memasuki minggu berikutnya (Asia/Jakarta).
+Katalog sementara memakai tiga resep contoh dari landing page. Daftar belanja
+menggabungkan bahan dari menu mingguan; pengurangan stok kulkas dan sinkronisasi
+ke akun menunggu integrasi modul inventory/authentication.
+
+Pengecekan modul:
+
+```powershell
+.\env\Scripts\python.exe manage.py test meals_planner
+```

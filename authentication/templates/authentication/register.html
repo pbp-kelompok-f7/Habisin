@@ -8,26 +8,35 @@
 
 <form method="post" novalidate>
   {% csrf_token %}
+
   <div class="mb-6">
     <label for="name" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Your name</label>
-    <input type="text" id="name" name="name" autocomplete="name"
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    <input type="text" id="name" name="name" value="{{ form.name.value|default:'' }}" autocomplete="name" autofocus
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.name.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.name.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
   </div>
+
   <div class="mb-6">
     <label for="email" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Your email</label>
-    <input type="email" id="email" name="email" autocomplete="email"
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    <input type="email" id="email" name="email" value="{{ form.email.value|default:'' }}" autocomplete="email"
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.email.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.email.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
   </div>
+
   <div class="mb-6">
     <label for="password" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Password</label>
     <input type="password" id="password" name="password" autocomplete="new-password"
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.password.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.password.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
   </div>
+
   <div class="mb-6">
     <label for="confirm_password" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Confirm password</label>
     <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password"
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.confirm_password.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.confirm_password.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
   </div>
+
   <button type="submit" class="w-full h-14 rounded-2xl bg-brand-green hover:opacity-90 text-white text-xl font-medium cursor-pointer">Sign up</button>
 </form>
 

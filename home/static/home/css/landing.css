@@ -4,21 +4,29 @@ body{background:var(--bg);color:var(--green);font-family:'DM Sans',sans-serif;li
 h1,h2,h3,.brand{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
 a{text-decoration:none;color:inherit}
 img{display:block;max-width:100%}
-.container{max-width:1062px;margin:0 auto;padding:0 16px}
+.container{width:100%;max-width:1296px;margin:0 auto;padding:0 24px}
 .center{text-align:center}
-.btn,.pill{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:10px;font-size:17px;font-weight:500;border:1px solid var(--line)}
-.btn-dark,.pill.active{background:var(--btn);color:#fff;border-color:var(--btn)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:10px;font-size:17px;font-weight:500;border:1px solid var(--line)}
+.btn-dark{background:var(--btn);color:#fff;border-color:var(--btn)}
 .btn-outline{background:#f4e9da;color:var(--green);border-color:#d4cabb}
 .btn-orange{background:var(--orange);color:var(--green);border-color:var(--orange);height:52px;padding:0 17px}
 .btn-lg{height:52px}
-.pill{border-color:transparent;height:51px}
-.nav{border-bottom:1px solid #d9cdbb}
-.nav-in{display:flex;align-items:center;height:71px;gap:38px}
+.lp-nav{width:100%;border-bottom:1px solid #E5DEC9;background:#f7edda}
+.lp-nav-in{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-block:16px}
+.lp-brand{display:flex;align-items:center;gap:8px;flex-shrink:0;font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;line-height:32px;letter-spacing:-.02em;color:var(--green)}
+.lp-brand img{height:32px;width:auto}
+.lp-menu-wrap{display:flex;flex:1;align-items:center;justify-content:space-between;margin-left:16px}
+.lp-menu{display:flex;align-items:center;gap:4px}
+.lp-auth{display:flex;align-items:center;gap:12px}
+.lp-link{display:inline-flex;align-items:center;padding:7px 11px;border:1px solid transparent;border-radius:12px;font-size:14px;line-height:20px;font-weight:700;color:#09332c;transition:background .15s,color .15s}
+.lp-link:not(.is-active):hover{color:#2e4b3c}
+.lp-link.is-active{background:#09332c;border-color:#09332c;color:#f7edda}
+.lp-outline{background:#f4e9da;border-color:#d4cabb}
+@media (min-width:640px){.lp-menu{gap:8px}.lp-link{padding:7px 15px;font-size:16px;line-height:24px}}
+@media (min-width:768px){.container{padding:0 48px}}
 .brand{display:flex;align-items:center;gap:10px;font-size:29px;font-weight:800;color:var(--green)}
 .brand img{height:46px;width:auto}
-.menu{display:flex;gap:14px;margin-right:auto}
-.auth{display:flex;gap:14px}.auth .btn{padding:0 18px;font-size:16px}
-.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding-top:92px;padding-bottom:120px}
+.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding-top:48px;padding-bottom:120px}
 .eyebrow{color:var(--orange);font:800 28px 'Bricolage Grotesque';letter-spacing:-.01em;margin-bottom:14px}
 h1{font-size:58px;line-height:1.1;font-weight:800;max-width:520px}
 .lead{margin:22px 0 28px;font-size:19px;line-height:1.25;color:var(--text);max-width:495px}
@@ -54,22 +62,14 @@ svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-l
 .banner h2{font-size:44px;max-width:520px;line-height:1.18}
 .banner p{margin-top:14px;font-size:18px;max-width:430px;line-height:1.25}
 .banner .btn{margin-right:-14px;white-space:nowrap}
-.footer{margin-top:110px;background:var(--foot);padding:62px 0 40px;color:#f8ecdc}
-.foot-grid{display:grid;grid-template-columns:359px 271px 1fr}
-.footer .brand{color:#f8ecdc;font-size:32px}.footer .brand img{height:56px}
-.tag{margin-top:10px;max-width:260px;color:var(--muted);font-size:18px;line-height:1.25}
-.footer h4{font:700 18px 'DM Sans';margin:6px 0 22px}
-.footer .foot-grid a:not(.brand){display:block;margin-bottom:14px;color:var(--muted);font-size:18px}
-.copy{text-align:center;margin-top:48px;color:var(--muted);font-size:18px}
 @media(max-width:860px){
   .menu,.auth .btn-outline{display:none}.nav-in{justify-content:space-between}
   .hero{grid-template-columns:1fr;padding-top:48px;padding-bottom:70px}
   h1{font-size:42px}h2,.banner h2{font-size:34px}
   .hero-art{width:min(100%,360px);height:auto;aspect-ratio:1;justify-self:center;margin:0 auto}
-  .grid3,.foot-grid{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
   .head,.banner{flex-direction:column;align-items:flex-start;gap:20px}.banner{padding:36px 28px}.banner .btn{margin:0}
 }
 
-/* Keep shared Tailwind main spacing out of this page layout. */
-main{padding:0}
+main{padding:0 0 110px}
 button{font:inherit}

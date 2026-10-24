@@ -1,8 +1,11 @@
 {% load static %}
-<header class="flex flex-row w-full px-6 md:px-12 py-4 gap-6 items-center justify-between border-b border-[#E5DEC9] bg-background">
+<header class="w-full border-b border-[#E5DEC9] bg-background">
+<div class="site-container flex flex-row py-4 gap-6 items-center justify-between">
   <!-- Brand Logo -->
-  <a href="{% url 'home:show_home' %}" class="flex items-center flex-shrink-0">
-    <img src="{% static '/svg/logo.svg' %}" alt="Logo of Habisin" class="h-8 w-auto" />
+  <a href="{% url 'home:show_home' %}" class="flex items-center gap-2 flex-shrink-0 font-heading font-extrabold"
+     style="font-size:22px;line-height:32px;letter-spacing:-.02em;color:#0f3b2e;">
+    <img src="{% static 'home/img/LOGO.svg' %}" alt="" class="h-8 w-auto" />
+    Habisin
   </a>
 
   <!-- Navigation Menu Links -->
@@ -34,7 +37,7 @@
 
       <!-- Meals Planner -->
       <a
-        href="#"
+        href="{% url 'meals_planner:show_planner' %}"
         class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'meals_planner' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
       >
         Meals Planner
@@ -70,4 +73,5 @@
       {% endif %}
     </div>
   </nav>
+</div>
 </header>

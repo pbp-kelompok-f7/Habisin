@@ -10,22 +10,45 @@
 <form method="post" novalidate>
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">
-  {% if form.non_field_errors %}
-  <div role="alert" class="mb-6 rounded-xl border border-red-400 px-4 py-3 text-sm text-red-500">{{ form.non_field_errors.0 }}</div>
+  {% if messages %}
+    {% for message in messages %}
+    <div role="status" class="mb-6 flex items-start gap-3 rounded-2xl border border-[#B7D9BF] bg-[#EAF6ED] px-4 py-3.5 text-sm text-[#1F5C33]">
+      <svg class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>
+      <p>{{ message }}</p>
+    </div>
+    {% endfor %}
   {% endif %}
+
+  {% if form.non_field_errors %}
+  <div role="alert" class="mb-6 flex items-start gap-3 rounded-2xl border border-[#F2B8B0] bg-[#FDEDEA] px-4 py-3.5 text-[#9F2A1E]">
+    <svg class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5h.01"/></svg>
+    <div class="text-sm">
+      <p class="font-bold">Login failed</p>
+      <p>{{ form.non_field_errors.0 }}</p>
+      <p class="mt-1.5">
+        No account yet? <a href="{% url 'authentication:register' %}" class="font-bold underline">Sign up</a>
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="mb-6">
     <label for="email" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Your email</label>
-    <input type="email" id="email" name="email" value="{{ form.email.value|default:'' }}" autocomplete="email" autofocus
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
-    {% for e in form.email.errors %}<p class="mt-1.5 text-sm text-red-500">{{ e }}</p>{% endfor %}
+    <input type="email" id="email" name="email" value="{{ form.email.value|default:'' }}" autocomplete="email"
+           {% if form.errors %}aria-invalid="true"{% endif %} {% if not form.email.value %}autofocus{% endif %}
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.email.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
   </div>
+
   <div class="mb-6">
     <label for="password" class="block mb-2.5 text-xl font-bold text-brand-green-dark">Password</label>
     <input type="password" id="password" name="password" autocomplete="current-password"
-           class="w-full h-14 px-5 rounded-2xl border-2 border-border-color bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
-    {% for e in form.password.errors %}<p class="mt-1.5 text-sm text-red-500">{{ e }}</p>{% endfor %}
+           {% if form.errors %}aria-invalid="true"{% endif %} {% if form.email.value %}autofocus{% endif %}
+           class="w-full h-14 px-5 rounded-2xl border-2 {% if form.errors %}border-red-400{% else %}border-border-color{% endif %} bg-transparent text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+    {% for e in form.password.errors %}<p class="mt-1.5 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
     <a href="#" class="inline-block mt-1.5 ml-2.5 text-sm text-[#7C8C80] hover:underline">Forgot password?</a>
   </div>
+
   <button type="submit" class="w-full h-14 rounded-2xl bg-brand-green hover:opacity-90 text-white text-xl font-medium cursor-pointer">Login</button>
 </form>
 

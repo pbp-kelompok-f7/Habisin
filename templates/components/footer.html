@@ -1,3 +1,24 @@
-<footer class="flex flex-row p-8 border-t-2 border-border-color">
-  <p>&copy; 2026 Habisin.</p>
+{% load static %}
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="site-footer-grid">
+      <div>
+        <a href="{% url 'home:show_home' %}" class="site-footer-brand"><img src="{% static 'home/img/logo2.svg' %}" alt="">Habisin</a>
+        <p class="site-footer-tag">Masak dari yang ada, habiskan tanpa sisa.</p>
+      </div>
+      <div>
+        <h4>FITUR</h4>
+        <a href="#">Kulkas</a>
+        <a href="{% url 'discovery:show_discovery' %}">Resep</a>
+        <a href="#">Bookmark</a>
+        <a href="{% url 'meals_planner:show_planner' %}">Meals Planner</a>
+        <a href="{% url 'saved_meals:show_saved_meals' %}">Saved Meals</a>
+      </div>
+      <div>
+        <h4>TENTANG</h4>
+        <a href="#">Tentang Kami</a>
+      </div>
+    </div>
+    <p class="site-footer-copy">© 2026 Habisin.</p>
+  </div>
 </footer>

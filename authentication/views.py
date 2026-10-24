@@ -1,11 +1,12 @@
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm
+from .forms import LoginForm, RegisterForm
 
 
 def login_view(request):
@@ -32,7 +33,16 @@ def logout_view(request):
 
 
 def register_view(request):
-    return render(request, "authentication/register.html")
+    if request.user.is_authenticated:
+        return redirect(settings.LOGIN_REDIRECT_URL)
+
+    form = RegisterForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Account created. Please sign in.")
+        return redirect("authentication:login")
+
+    return render(request, "authentication/register.html", {"form": form})
 
 
 @login_required
