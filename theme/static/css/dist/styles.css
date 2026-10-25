@@ -45,6 +45,10 @@
     --tracking-tight: -0.025em;
     --leading-tight: 1.25;
     --leading-snug: 1.375;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+    --aspect-video: 16 / 9;
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
@@ -58,6 +62,10 @@
     --color-background: #F7EDDA;
     --color-background-white: #F3F3F3;
     --color-border-color: #D9D9D9;
+    --color-muted: #778C83;
+    --font-heading: "Bricolage Grotesque", sans-serif;
+    --font-body: "DM Sans", sans-serif;
+    --text-900: 68px;
     --font-heading: "Bricolage Grotesque", sans-serif;
     --font-body: "DM Sans", sans-serif;
     --text-900: 68px;
@@ -232,6 +240,9 @@
   .inset-0 {
     inset: calc(var(--spacing) * 0);
   }
+  .left-3 {
+    left: calc(var(--spacing) * 3);
+  }
   .top-1 {
     top: calc(var(--spacing) * 1);
   }
@@ -264,6 +275,9 @@
     @media (width >= 96rem) {
       max-width: 96rem;
     }
+  }
+  .mt-1\.5 {
+    margin-top: calc(var(--spacing) * 1.5);
   }
   .mx-auto {
     margin-inline: auto;
@@ -298,6 +312,8 @@
   .mt-7 {
     margin-top: calc(var(--spacing) * 7);
   }
+  .mt-auto {
+    margin-top: auto;
   .mt-12 {
     margin-top: calc(var(--spacing) * 12);
   }
@@ -318,6 +334,12 @@
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
+  }
+  .mb-8 {
+    margin-bottom: calc(var(--spacing) * 8);
+  }
+  .mb-9 {
+    margin-bottom: calc(var(--spacing) * 9);
   }
   .mb-9 {
     margin-bottom: calc(var(--spacing) * 9);
@@ -346,6 +368,14 @@
   .inline-block {
     display: inline-block;
   }
+  .inline-flex {
+    display: inline-flex;
+  }
+  .table {
+    display: table;
+  }
+  .aspect-video {
+    aspect-ratio: var(--aspect-video);
   .table {
     display: table;
   }
@@ -360,6 +390,12 @@
   .size-7 {
     width: calc(var(--spacing) * 7);
     height: calc(var(--spacing) * 7);
+  }
+  .h-4 {
+    height: calc(var(--spacing) * 4);
+  }
+  .h-5 {
+    height: calc(var(--spacing) * 5);
   }
   .size-11 {
     width: calc(var(--spacing) * 11);
@@ -381,6 +417,8 @@
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
+  .h-11 {
+    height: calc(var(--spacing) * 11);
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
@@ -396,6 +434,8 @@
   .h-56 {
     height: calc(var(--spacing) * 56);
   }
+  .h-\[15px\] {
+    height: 15px;
   .h-60 {
     height: calc(var(--spacing) * 60);
   }
@@ -414,12 +454,23 @@
   .w-4 {
     width: calc(var(--spacing) * 4);
   }
+  .w-5 {
+    width: calc(var(--spacing) * 5);
+  }
   .w-8 {
     width: calc(var(--spacing) * 8);
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
   }
+  .w-11 {
+    width: calc(var(--spacing) * 11);
+  }
+  .w-\[15px\] {
+    width: 15px;
+  }
+  .w-\[23ch\] {
+    width: 23ch;
   .w-60 {
     width: calc(var(--spacing) * 60);
   }
@@ -446,6 +497,15 @@
   }
   .shrink-0 {
     flex-shrink: 0;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  .grid-cols-\[repeat\(auto-fill\,minmax\(15rem\,1fr\)\)\] {
+    grid-template-columns: repeat(auto-fill,minmax(15rem,1fr));
   }
   .border-collapse {
     border-collapse: collapse;
@@ -612,6 +672,9 @@
   .bg-\[\#DADDDC\] {
     background-color: #DADDDC;
   }
+  .bg-\[\#EDD9B8\] {
+    background-color: #EDD9B8;
+  }
   .bg-\[\#EAF6ED\] {
     background-color: #EAF6ED;
   }
@@ -654,12 +717,17 @@
   .bg-white {
     background-color: var(--color-white);
   }
+  .fill-none {
+    fill: none;
+  }
   .object-contain {
     object-fit: contain;
   }
   .object-cover {
     object-fit: cover;
   }
+  .p-3 {
+    padding: calc(var(--spacing) * 3);
   .p-4 {
     padding: calc(var(--spacing) * 4);
   }
@@ -696,6 +764,9 @@
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
   }
+  .py-4 {
+    padding-block: calc(var(--spacing) * 4);
+  }
   .py-3\.5 {
     padding-block: calc(var(--spacing) * 3.5);
   }
@@ -723,6 +794,8 @@
   .pr-4 {
     padding-right: calc(var(--spacing) * 4);
   }
+  .pb-4 {
+    padding-bottom: calc(var(--spacing) * 4);
   .pb-12 {
     padding-bottom: calc(var(--spacing) * 12);
   }
@@ -792,6 +865,11 @@
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
   }
+  .text-200 {
+    font-size: var(--text-200);
+  }
+  .text-500 {
+    font-size: var(--text-500);
   .text-300 {
     font-size: var(--text-300);
   }
@@ -831,6 +909,12 @@
   }
   .text-\[\#1E2922\] {
     color: #1E2922;
+  }
+  .text-\[\#6B4EE6\] {
+    color: #6B4EE6;
+  }
+  .text-\[\#7C8C80\] {
+    color: #7C8C80;
   }
   .text-\[\#1F5C33\] {
     color: #1F5C33;
@@ -873,6 +957,9 @@
   }
   .text-gray-800 {
     color: var(--color-gray-800);
+  }
+  .text-muted {
+    color: var(--color-muted);
   }
   .text-red-500 {
     color: var(--color-red-500);
@@ -930,6 +1017,11 @@
   .duration-300 {
     --tw-duration: 300ms;
     transition-duration: 300ms;
+  }
+  .group-aria-pressed\:fill-current {
+    &:is(:where(.group)[aria-pressed="true"] *) {
+      fill: currentcolor;
+    }
   }
   .before\:h-px {
     &::before {
@@ -1108,6 +1200,23 @@
       @supports (color: color-mix(in lab, red, red)) {
         --tw-ring-color: color-mix(in oklab, var(--color-brand-green) 30%, transparent);
       }
+    }
+  }
+  .focus-visible\:outline {
+    &:focus-visible {
+      outline-style: var(--tw-outline-style);
+      outline-width: 1px;
+    }
+  }
+  .focus-visible\:outline-2 {
+    &:focus-visible {
+      outline-style: var(--tw-outline-style);
+      outline-width: 2px;
+    }
+  }
+  .focus-visible\:outline-offset-2 {
+    &:focus-visible {
+      outline-offset: 2px;
     }
   }
   .focus-visible\:outline-none {
@@ -1474,6 +1583,14 @@
   inherits: false;
   initial-value: 1;
 }
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
@@ -1504,6 +1621,7 @@
       --tw-scale-x: 1;
       --tw-scale-y: 1;
       --tw-scale-z: 1;
+      --tw-outline-style: solid;
     }
   }
 }
