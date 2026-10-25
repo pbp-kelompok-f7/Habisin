@@ -13,7 +13,7 @@
     <div class="flex flex-row items-center gap-1 sm:gap-2">
       <!-- Kulkas -->
       <a
-        href="#"
+        href="{% url 'fridge:show_fridge' %}"
         class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'fridge' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
       >
         Kulkas
@@ -52,18 +52,18 @@
       </a>
     </div>
 
-    <!-- Right Profile Avatar / Auth -->
+        <!-- Right Profile Avatar / Auth -->
     <div class="flex flex-row items-center gap-3">
       {% if user.is_authenticated %}
-      <div class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm">
+      <a href="{% url 'authentication:profile' %}" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Profile" aria-label="Profile">
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}&backgroundColor=b6e3f4"
           alt="{{ user.username }}"
           class="w-full h-full object-cover"
         />
-      </div>
+      </a>
       {% else %}
-      <a href="#" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="User Profile">
+      <a href="{% url 'authentication:login' %}" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Sign In" aria-label="Sign In">
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed=HabisinUser&backgroundColor=b6e3f4"
           alt="Profile Avatar"
