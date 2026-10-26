@@ -25,6 +25,7 @@ urlpatterns = [
     path('discovery/', include('discovery.urls')),
     path('saved-meals/', include('saved_meals.urls')),
     path('meals-planner/', include('meals_planner.urls')),
+    path('bookmarks/', include('bookmarks.urls')),
 ]
 
 if settings.DEBUG:
