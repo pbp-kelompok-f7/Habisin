@@ -29,8 +29,8 @@
 
       <!-- Bookmark -->
       <a
-        href="#"
-        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'bookmark' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
+        href="{% url 'bookmarks:show_bookmarks' %}"
+        class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'bookmarks' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
       >
         Bookmark
       </a>
