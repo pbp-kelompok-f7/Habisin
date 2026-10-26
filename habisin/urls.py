@@ -26,11 +26,11 @@ urlpatterns = [
     path('saved-meals/', include('saved_meals.urls')),
     path('meals-planner/', include('meals_planner.urls')),
     path('bookmarks/', include('bookmarks.urls')),
+    path("auth/", include("authentication.urls")),
+    path("kulkas/", include("fridge.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
         path("__reload__/", include("django_browser_reload.urls")),
-        path("auth/", include("authentication.urls")),
-        path("kulkas/", include("fridge.urls")),
     ]

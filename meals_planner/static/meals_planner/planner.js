@@ -16,8 +16,8 @@
   let opener = null;
   let saving = false;
   const navigation = document.querySelector(".planner-nav");
-  const activeNavigation = navigation.querySelector(".is-active");
-  if (navigation.scrollWidth > navigation.clientWidth) {
+  const activeNavigation = navigation?.querySelector(".is-active");
+  if (activeNavigation && navigation.scrollWidth > navigation.clientWidth) {
     const navBounds = navigation.getBoundingClientRect();
     const activeBounds = activeNavigation.getBoundingClientRect();
     navigation.scrollLeft = activeBounds.left - navBounds.left - (navigation.clientWidth - activeBounds.width) / 2;
