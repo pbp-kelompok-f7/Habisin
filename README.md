@@ -118,11 +118,45 @@ Buka `/meals-planner/` untuk menyusun sarapan, makan siang, dan makan malam pada
 Senin sampai Minggu. Pilih hari, lalu tambah/ganti resep atau hapus menu dengan
 tombol silang. Daftar bahan dan progres dihitung ulang setiap menu berubah.
 
-Kunjungan pertama berisi empat contoh menu yang bisa diedit. Rencana disimpan di
-sesi browser dan dimulai kosong saat memasuki minggu berikutnya (Asia/Jakarta).
-Katalog sementara memakai tiga resep contoh dari landing page. Daftar belanja
-menggabungkan bahan dari menu mingguan; pengurangan stok kulkas dan sinkronisasi
-ke akun menunggu integrasi modul inventory/authentication.
+Login diperlukan untuk membuka planner. Setiap menu disimpan di model
+`PlannedMeal`, terkait akun, tanggal, dan waktu makan. Satu akun hanya dapat
+memiliki satu menu pada setiap tanggal/waktu makan. Rencana dapat dibuka kembali
+dari browser lain; pindah minggu tidak menghapus riwayat. Tanggal hari ini
+mengikuti zona waktu Asia/Jakarta.
+
+Gunakan navigasi minggu untuk melihat rencana sebelumnya atau menyusun minggu
+berikutnya. Pilihan menu berisi `SavedMeal` milik akun yang sedang login dengan
+status `SAVED`, serta tiga resep contoh yang diberi label. Resep akun lain,
+resep tanpa pemilik, dan riwayat masakan tidak ditawarkan. Nama, gambar, waktu
+masak, dan bahan disalin saat menu dijadwalkan sehingga perubahan atau
+penghapusan resep sumber tidak merusak rencana yang sudah dibuat.
+
+Ringkasan bahan menggabungkan bahan yang diketahui dari menu dalam minggu yang
+dipilih. Model `SavedMeal` saat ini belum menyediakan rincian bahan, sehingga
+planner menandai menu yang datanya belum lengkap. Stok kulkas belum dikurangkan
+karena modul inventory masih menggunakan data contoh. Rencana sesi browser
+versi lama tidak otomatis dihubungkan ke akun karena belum memiliki identitas
+pemilik; data sesi tersebut tidak dihapus oleh pembaruan ini.
+
+Setelah mengambil pembaruan, jalankan migrasi sebelum menjalankan server:
+
+```powershell
+.\env\Scripts\python.exe manage.py migrate
+.\env\Scripts\python.exe manage.py runserver
+```
+
+Sebelum melanjutkan pekerjaan pada branch planner, ambil perubahan terbaru:
+
+```powershell
+git switch feature/meals-planner
+git pull --ff-only origin feature/meals-planner
+git fetch origin main
+git merge origin/main
+```
+
+Jika ada perubahan lokal yang belum di-commit atau konflik, selesaikan dahulu
+sebelum melanjutkan. Push dilakukan bertahap ke branch fitur setelah pengujian;
+penggabungan ke `main` dan deployment dilakukan terpisah.
 
 Pengecekan modul:
 
