@@ -37,7 +37,7 @@
   <section class="flex flex-col w-full gap-4">
     <div class="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4 w-full">
       {% for i in placeholder_range %}
-      <a href="https://youtube.com/" class="block h-full">
+      <a href="{% url 'discovery:show_recipe_detail' i %}" class="block h-full">
         <article class="flex flex-col items-center gap-2 h-full border-2 border-border-color rounded-xl bg-background-white">
           <div class="w-full aspect-video bg-brand-green rounded-t-xl">
             <!-- Image placeholder-->
