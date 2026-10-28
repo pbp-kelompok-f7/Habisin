@@ -1,0 +1,87 @@
+<section id="history-section" class="hidden">
+  <div class="w-full bg-white rounded-3xl border border-[#E9DFCE] overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-[#EDD9B8] text-[#1E2922] font-heading font-bold text-sm sm:text-base border-b border-[#E3CDAA]">
+            <th class="py-4 px-6">Nama Menu</th>
+            <th class="py-4 px-6">Komposisi</th>
+            <th class="py-4 px-6 text-center">Porsi</th>
+            <th class="py-4 px-6">Note</th>
+            <th class="py-4 px-6 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body" class="divide-y divide-[#EFE8DC]">
+          {% for meal in history_meals %}
+          <tr id="history-row-{{ meal.id }}" class="hover:bg-[#FDFBF7]">
+            <td class="py-4 px-6 font-bold text-[#1E2922]">{{ meal.recipe_name }}</td>
+            <td class="py-4 px-6 text-gray-700 text-sm">{{ meal.ingredients|default:"-" }}</td>
+            <td class="py-4 px-6 font-bold text-center" id="history-portions-{{ meal.id }}">{{ meal.portions_saved }}</td>
+            <td class="py-4 px-6 text-gray-700 text-sm" id="history-note-{{ meal.id }}">
+              {% if user.is_authenticated %}
+                {{ meal.notes|default:"-" }}
+              {% else %}
+                <span class="italic text-gray-400">Login untuk melihat catatan pribadi</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-6 text-right">
+              {% if user.is_authenticated %}
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  data-meal-id="{{ meal.id }}"
+                  data-recipe-name="{{ meal.recipe_name }}"
+                  data-notes="{{ meal.notes }}"
+                  data-portions="{{ meal.portions_saved }}"
+                  onclick="openEditModal(this)"
+                  class="px-3 py-1.5 rounded-xl bg-[#F5E5D3] text-[#8C6D4C] text-xs font-bold"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  data-meal-id="{{ meal.id }}"
+                  onclick="deleteMeal(this.dataset.mealId, 'row')"
+                  class="px-3 py-1.5 rounded-xl bg-[#FCE2DC] text-[#DE5A43] text-xs font-bold"
+                >
+                  Hapus
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-12 px-6 text-center text-gray-500">Belum ada riwayat masakan.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div id="edit-note-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+  <div class="bg-white rounded-3xl p-6 w-full max-w-md mx-4 border border-[#E9DFCE] shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-heading font-extrabold text-xl text-[#1E2922]">Edit History</h3>
+        <p id="edit-modal-recipe-name" class="text-xs text-gray-500"></p>
+      </div>
+      <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl">&times;</button>
+    </div>
+
+    <form id="edit-note-form" onsubmit="submitEditNote(event)" class="flex flex-col gap-3">
+      <input type="hidden" id="edit-modal-meal-id" />
+      <label class="text-xs font-bold text-gray-700">Jumlah Porsi:</label>
+      <input id="edit-modal-portions-input" name="portions_saved" type="number" min="1" required class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
+      <label class="text-xs font-bold text-gray-700">Catatan:</label>
+      <textarea id="edit-modal-note-input" name="notes" rows="3" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl"></textarea>
+
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-full border border-gray-300 text-sm font-bold">Batal</button>
+        <button type="submit" class="px-5 py-2 rounded-full bg-[#344C3D] text-white text-sm font-bold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
