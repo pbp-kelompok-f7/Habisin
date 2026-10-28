@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "authentication",
     "fridge",
     "bookmarks",
+    "comments",
 ]
 
 if DEBUG:
