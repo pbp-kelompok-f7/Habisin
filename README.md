@@ -28,7 +28,7 @@ Bertanggung jawab atas keamanan akses pengguna (registrasi dan login) serta peng
 preferensi personal mereka. Selain itu, juga mengelola ketersediaan bahan makanan sisa yang dimiliki pengguna di rumah
 untuk nantinya digunakan sebagai input pencarian.
 
-- Meals Planner (Amelinda Fedora Faragusti)
+- Meals Planner (Umar Faiz Rahman)
 
 Membantu pengguna merencanakan makanan sehari-hari berdasarkan resep yang sudah disimpan.
 
@@ -42,7 +42,7 @@ dapat menambahkan resep ke beberapa list kategori (_bookmarks_), seperti _favour
 Melihat porsi makanan yang terselamatkan serta masakan yang sudah berhasil dieksekusi sebelumnya. Daftar riwayat bisa
 diubah dan dihapus oleh pengguna.
 
-- Landing Page & Community / Personal Reviews (Umar Faiz Rahman)
+- Landing Page & Community / Personal Reviews (Amelinda Fedora Faragusti)
 
 Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman yang memfasilitasi pengguna untuk menilai resep
 masakan yang sudah mereka coba buat.
