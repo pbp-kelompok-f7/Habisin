@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Sum, Q
 from django.contrib import messages
 from .models import SavedMeal
+from .forms import SavedMealForm, HistoryNoteForm, SavedMealFilterForm
 from .spoonacular import (
     get_recipe_by_id,
     seed_default_meals_if_empty,
@@ -149,28 +150,39 @@ def mark_meal_done(request, meal_id):
 
 @require_POST
 def edit_history_note(request, meal_id):
-    """Update notes for a history meal entry."""
+    """Update notes for a history meal entry using HistoryNoteForm."""
     history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY')
 
     # Parse notes from form-encoded POST or JSON
-    notes = ''
     if request.content_type == 'application/json':
         try:
             body = json.loads(request.body)
-            notes = body.get('notes', '')
         except Exception:
-            pass
+            body = {}
+        data = {
+            'notes': body.get('notes', ''),
+            'portions_saved': body.get('portions_saved', history_meal.portions_saved),
+        }
     else:
-        notes = request.POST.get('notes', '')
+        data = {
+            'notes': request.POST.get('notes', ''),
+            'portions_saved': request.POST.get('portions_saved', history_meal.portions_saved),
+        }
 
-    history_meal.notes = notes.strip()
-    history_meal.save()
+    form = HistoryNoteForm(data, instance=history_meal)
+    if form.is_valid():
+        updated_meal = form.save()
+        return JsonResponse({
+            'success': True,
+            'meal_id': updated_meal.id,
+            'notes': updated_meal.notes,
+            'portions_saved': updated_meal.portions_saved,
+        })
 
     return JsonResponse({
-        'success': True,
-        'meal_id': history_meal.id,
-        'notes': history_meal.notes,
-    })
+        'success': False,
+        'errors': form.errors,
+    }, status=400)
 
 @require_POST
 def delete_history_meal(request, meal_id):

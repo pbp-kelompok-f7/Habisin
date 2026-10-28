@@ -699,6 +699,10 @@
         const row = document.getElementById(`history-row-${mealId}`);
         if (row) {
           row.setAttribute('data-note', (data.notes || '').toLowerCase());
+          const editBtn = row.querySelector('button[data-notes]');
+          if (editBtn) {
+            editBtn.setAttribute('data-notes', data.notes || '');
+          }
         }
         closeEditModal();
       }
