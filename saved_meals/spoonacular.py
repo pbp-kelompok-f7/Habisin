@@ -188,13 +188,13 @@ def search_spoonacular_recipes(query='', number=10):
     return get_sample_recipes(query)
 
 def seed_default_meals_if_empty(user=None):
-    """Ensure database has standard sample meals matching mockup screenshot if empty."""
-    # Check if there is already history data
-    history_count = SavedMeal.objects.filter(status='HISTORY').count()
+    target_user = user if (user and user.is_authenticated) else None
+    user_filter = {'user': target_user} if target_user else {'user__isnull': True}
+
+    history_count = SavedMeal.objects.filter(status='HISTORY', **user_filter).count()
     if history_count == 0:
-        # Seed History records matching screenshot
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=102,
             recipe_name='Ayam Bakar Madu',
             image_url='https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=800&q=80',
@@ -208,7 +208,7 @@ def seed_default_meals_if_empty(user=None):
             status='HISTORY',
         )
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=101,
             recipe_name='Sup Ayam Wortel Kentang',
             image_url='https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80',
@@ -222,7 +222,7 @@ def seed_default_meals_if_empty(user=None):
             status='HISTORY',
         )
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=103,
             recipe_name='Omelet Bayam Keju',
             image_url='https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80',
@@ -236,11 +236,10 @@ def seed_default_meals_if_empty(user=None):
             status='HISTORY',
         )
 
-    # Check if there is saved meals data
-    saved_count = SavedMeal.objects.filter(status='SAVED').count()
+    saved_count = SavedMeal.objects.filter(status='SAVED', **user_filter).count()
     if saved_count == 0:
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=101,
             recipe_name='Sup Ayam Wortel Kentang',
             image_url='https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80',
@@ -253,7 +252,7 @@ def seed_default_meals_if_empty(user=None):
             status='SAVED',
         )
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=104,
             recipe_name='Nasi Goreng Sayur Sisa Kulkas',
             image_url='https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80',
@@ -266,7 +265,7 @@ def seed_default_meals_if_empty(user=None):
             status='SAVED',
         )
         SavedMeal.objects.create(
-            user=user,
+            user=target_user,
             recipe_id=105,
             recipe_name='Tumis Buncis & Telur Orak-Arik',
             image_url='https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
