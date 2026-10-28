@@ -11,3 +11,18 @@
 .site-footer-grid a:not(.site-footer-brand):hover{color:#f8ecdc}
 .site-footer-copy{text-align:center;margin-top:48px;color:#3d6354;font-size:18px}
 @media (max-width:860px){.site-footer-grid{grid-template-columns:1fr;gap:24px}}
+
+/* Hamburger menu */
+.nav-toggle{display:none}
+@media (max-width:899px){
+  .nav-shell .nav-shell-in{flex-wrap:wrap;row-gap:0}
+  .nav-shell .nav-toggle{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-left:auto;padding:0;border:1px solid #d4cabb;border-radius:12px;background:#f4e9da;color:#09332c;cursor:pointer}
+  .nav-toggle svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;fill:none}
+  .nav-toggle .icon-close{display:none}
+  .nav-shell.is-open .nav-toggle .icon-open{display:none}
+  .nav-shell.is-open .nav-toggle .icon-close{display:block}
+  .nav-shell .nav-collapse{display:none}
+  .nav-shell.is-open .nav-collapse{display:flex;flex-direction:column;align-items:stretch;flex-basis:100%;margin-left:0;gap:12px;padding-top:16px}
+  .nav-shell.is-open .nav-collapse > div{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .nav-shell.is-open .nav-collapse > div > a:not(.nav-avatar){display:flex;width:100%;padding:10px 12px}
+}
