@@ -435,6 +435,9 @@
   .w-\[23ch\] {
     width: 23ch;
   }
+  .w-\[28ch\] {
+    width: 28ch;
+  }
   .w-auto {
     width: auto;
   }
@@ -754,6 +757,9 @@
   }
   .pl-9 {
     padding-left: calc(var(--spacing) * 9);
+  }
+  .pl-10 {
+    padding-left: calc(var(--spacing) * 10);
   }
   .pl-14 {
     padding-left: calc(var(--spacing) * 14);

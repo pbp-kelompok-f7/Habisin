@@ -12,16 +12,17 @@
   <div class="flex flex-row justify-between items-start w-full mb-8">
     <span>Temukan resep dari bahan yang sudah ada di kulkasmu!</span>
     <form id="recipe-search"
-          class="flex flex-row gap-2"
+          class="relative flex flex-row"
+          role="search"
           data-api-url="{% url 'discovery:recipes_api' %}"
           data-detail-url="{% url 'discovery:show_recipe_detail' 0 %}">
+      <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search"
              name="recipe"
              placeholder="Cari bahan atau resep"
              aria-label="Cari bahan atau resep"
              autocomplete="off"
-             class="w-[23ch] rounded-xl p-3 bg-background-white">
-      <button class="rounded-xl px-4 py-3 bg-brand-green text-background font-bold" type="submit">Cari</button>
+             class="w-[28ch] rounded-xl p-3 pl-10 bg-background-white">
     </form>
   </div>
   <section class="flex flex-col p-8 gap-4 rounded-xl bg-background-white border-2 border-border-color mb-8">
