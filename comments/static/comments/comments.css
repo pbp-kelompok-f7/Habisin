@@ -1,0 +1,45 @@
+/* Bagian komentar di halaman detail resep */
+.cm{width:100%;display:flex;flex-direction:column;gap:16px;color:#09332c;font-family:'DM Sans',sans-serif;scroll-margin-top:24px}
+.cm-title{display:flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.cm-count{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;padding:0 8px;border-radius:999px;background:#f7dfba;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:0}
+.cm-alert{padding:12px 16px;border-radius:12px;background:#fde3d8;color:#8a2b0b;font-size:14px}
+
+.cm-card{display:flex;gap:16px;padding:20px;background:#fff;border:1px solid #ece2cf;border-radius:16px;box-shadow:0 1px 3px rgba(9,51,44,.06)}
+
+.cm-me{width:40px;height:40px;flex-shrink:0;border:2px solid #09332c;border-radius:50%;background:#b6e3f4}
+.cm-form{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cm-label{font-size:14px;font-weight:700}
+.cm-textarea{width:100%;min-height:88px;padding:12px 14px;border:1px solid #ecdcc0;border-radius:12px;background:#f7edda;color:#09332c;font:inherit;font-size:15px;line-height:1.5;resize:vertical}
+.cm-textarea::placeholder{color:#8a8a7f}
+.cm-textarea:focus{outline:2px solid #2e4b3c;outline-offset:1px}
+.cm-actions{display:flex;justify-content:flex-end}
+.cm-send{padding:10px 22px;border:0;border-radius:12px;background:#09332c;color:#f7edda;font:inherit;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
+.cm-send:hover{background:#2e4b3c}
+/* Tombol abu-abu selama kolom masih kosong */
+.cm-form:has(.cm-textarea:placeholder-shown) .cm-send{background:#e8dcc3;color:#7c7462;cursor:default}
+.cm-guest{margin:0;font-size:15px;color:#4d695e}
+.cm-guest a{color:#09332c;font-weight:700;text-decoration:underline}
+
+.cm-avatar{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0;border-radius:50%;font-size:14px;font-weight:700}
+.cm-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.cm-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0;font-size:15px}
+.cm-meta time{font-size:13px;color:#7c8c80}
+.cm-text{margin:0;font-size:15px;line-height:1.55;color:#2b3d36;overflow-wrap:anywhere}
+.cm-footer{display:flex;align-items:center;gap:16px;margin-top:6px}
+.cm-footer form{margin:0}
+.cm-like{display:inline-flex;align-items:center;gap:6px;padding:4px 0;border:0;background:none;color:#09332c;font:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
+.cm-like svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.cm-like:hover{color:#2e4b3c}
+.cm-like.is-liked{color:#f0531c}
+.cm-like.is-liked svg{fill:currentColor}
+.cm-delete{padding:4px 0;border:0;background:none;color:#7c8c80;font:inherit;font-size:13px;cursor:pointer}
+.cm-delete:hover{color:#f0531c;text-decoration:underline}
+
+.cm-empty{padding:24px;border:1px dashed #d8cdb6;border-radius:16px;text-align:center;color:#4d695e}
+.cm-more{align-self:center;padding:10px 20px;border:1px solid #ece2cf;border-radius:12px;background:#fff;color:#09332c;font-size:14px;font-weight:700;text-decoration:none}
+.cm-more:hover{background:#f7edda}
+
+@media (max-width:640px){
+  .cm-title{font-size:26px}
+  .cm-card{padding:16px;gap:12px}
+}

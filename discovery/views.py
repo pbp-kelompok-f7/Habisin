@@ -7,6 +7,7 @@ from urllib.request import urlopen
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
+from comments.views import comment_section_context
 
 MEALDB_BASE = "https://www.themealdb.com/api/json/v1/1/"
 RECIPES_PER_PAGE = 8
@@ -101,4 +102,6 @@ def recipes_api(request):
 
 def show_recipe_detail(request, recipe_id):
     # TODO: Fetch idnya dari API
-    return render(request, "discovery/recipe_detail.html", {'recipe_id': recipe_id})
+    context = {'recipe_id': recipe_id}
+    context.update(comment_section_context(request, recipe_id))
+    return render(request, "discovery/recipe_detail.html", context)
