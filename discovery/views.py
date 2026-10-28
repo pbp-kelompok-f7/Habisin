@@ -30,6 +30,10 @@ def _extract_ingredients(meal):
     return ingredients
 
 
+def _capitalize_words(text):
+    return " ".join(word[:1].upper() + word[1:] for word in text.split(" "))
+
+
 def _lookup_meal(meal_id):
     meals = _fetch_json("lookup.php", i=meal_id).get("meals") or []
     return meals[0] if meals else None
@@ -42,7 +46,6 @@ def _search_recipes(query, page_number):
         by_ingredient = _fetch_json("filter.php", i=query.replace(" ", "_")).get("meals") or []
         by_name = _fetch_json("search.php", s=query).get("meals") or []
 
-        # search.php already returns full details, so keep them to skip a lookup
         full_meals = {meal["idMeal"]: meal for meal in by_name}
         seen = set()
         for meal in by_ingredient + by_name:
@@ -61,16 +64,15 @@ def _search_recipes(query, page_number):
 
     recipes = []
     for meal, details in zip(page_obj.object_list, detailed_meals):
-        ingredients = _extract_ingredients(details) if details else []
+        ingredients = [_capitalize_words(i) for i in _extract_ingredients(details)] if details else []
         recipes.append({
             "id": meal["idMeal"],
-            "name": meal["strMeal"],
+            "name": _capitalize_words(meal["strMeal"]),
             "image": meal["strMealThumb"],
             "ingredients": ingredients,
             "ingredient_count": len(ingredients),
         })
 
-    # None marks an ellipsis so the range can be serialised to JSON
     page_range = [
         None if number == Paginator.ELLIPSIS else number
         for number in paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1)

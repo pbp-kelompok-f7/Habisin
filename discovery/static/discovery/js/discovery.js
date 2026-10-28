@@ -6,7 +6,7 @@
     error: "Gagal memuat resep. Coba lagi.",
     noResults: (query) => `Tidak ada resep untuk "${query}".`,
   };
-  const PAGE_BUTTON_CLASS = "rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold";
+  const PAGE_BUTTON_CLASS = "rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer";
   const CURRENT_PAGE_CLASS = "rounded-xl px-4 py-3 border-2 border-brand-green bg-brand-green text-background font-bold";
 
   const form = document.getElementById("recipe-search");
