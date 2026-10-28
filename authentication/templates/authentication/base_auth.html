@@ -8,14 +8,18 @@
 {% block footer %}{% endblock %}
 
 {% block content %}
-<main class="min-h-screen grid md:grid-cols-2 items-center gap-8 lg:gap-20 px-5 py-6 md:px-8 md:py-3 lg:px-12 bg-background text-brand-green-dark">
-  <div class="relative h-56 md:h-auto md:self-stretch md:min-h-[calc(100vh-1.5rem)] rounded-2xl overflow-hidden bg-[#cdbfa6]">
+{# Setiap halaman auth pas satu layar (md ke atas), tanpa scroll #}
+<main class="grid md:grid-cols-2 md:h-screen md:overflow-y-auto items-stretch gap-6 lg:gap-16 px-5 py-6 md:px-8 md:py-3 lg:px-12 bg-background text-brand-green-dark">
+
+  <div class="relative hidden md:block rounded-2xl overflow-hidden bg-[#cdbfa6]">
     <img src="{% static 'img/pizza.png' %}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
   </div>
 
-  <section class="w-full max-w-md justify-self-center">
+  <section class="w-full max-w-lg justify-self-center self-start pt-[clamp(0.5rem,5vh,3.5rem)]">
     <div class="flex items-center justify-center">
-      <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-14">
+      <a href="{% url 'home:show_home' %}" aria-label="Kembali ke beranda">
+        <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-[clamp(3rem,10vh,5rem)]">
+      </a>
     </div>
     {% block auth_content %}{% endblock %}
   </section>
