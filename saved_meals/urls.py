@@ -5,8 +5,7 @@ from saved_meals.views import (
     add_saved_meal,
     mark_meal_done,
     edit_history_note,
-    delete_history_meal,
-    delete_saved_meal,
+    delete_meal,
     save_recipe,
 )
 
@@ -17,8 +16,7 @@ urlpatterns = [
     path('json/', saved_meals_json, name="saved_meals_json"),
     path('add/', add_saved_meal, name="add_saved_meal"),
     path('complete/<int:meal_id>/', mark_meal_done, name="mark_meal_done"),
-    path('saved/<int:meal_id>/delete/', delete_saved_meal, name="delete_saved_meal"),
     path('history/<int:meal_id>/edit_note/', edit_history_note, name="edit_history_note"),
-    path('history/<int:meal_id>/delete/', delete_history_meal, name="delete_history_meal"),
+    path('delete/<int:meal_id>/', delete_meal, name="delete_meal"),
     path('save/<int:recipe_id>/', save_recipe, name="save_recipe"),
 ]
