@@ -194,10 +194,11 @@
               </span>
             </div>
 
-            <!-- Checkmark "Done" Button (Replaces Heart) -->
+            <!-- Checkmark "Done" Button -->
             <button
               type="button"
-              onclick="markMealDone({{ meal.id }}, this)"
+              data-meal-id="{{ meal.id }}"
+              onclick="markMealDone(this.dataset.mealId, this)"
               class="done-btn w-9 h-9 rounded-full border border-gray-300 bg-white hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-600 text-gray-400 flex items-center justify-center transition shadow-sm"
               title="Tandai Selesai / Pindahkan ke History"
               aria-label="Tandai Selesai"
@@ -272,7 +273,10 @@
                   <!-- Edit Note Button (Warm Beige Rounded Square with Pencil) -->
                   <button
                     type="button"
-                    onclick="openEditModal({{ meal.id }}, '{{ meal.recipe_name|escapejs }}', '{{ meal.notes|escapejs }}')"
+                    data-meal-id="{{ meal.id }}"
+                    data-recipe-name="{{ meal.recipe_name }}"
+                    data-notes="{{ meal.notes }}"
+                    onclick="openEditModal(this.dataset.mealId, this.dataset.recipeName, this.dataset.notes)"
                     class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#F5E5D3] hover:bg-[#ebd3be] text-[#8C6D4C] flex items-center justify-center transition shadow-sm flex-shrink-0"
                     title="Edit Note"
                     aria-label="Edit Note"
@@ -285,7 +289,9 @@
                   <!-- Delete History Button (Light Peach/Red Rounded Square with Trash) -->
                   <button
                     type="button"
-                    onclick="confirmDeleteHistory({{ meal.id }}, '{{ meal.recipe_name|escapejs }}')"
+                    data-meal-id="{{ meal.id }}"
+                    data-recipe-name="{{ meal.recipe_name }}"
+                    onclick="confirmDeleteHistory(this.dataset.mealId, this.dataset.recipeName)"
                     class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#FCE2DC] hover:bg-[#fad0c7] text-[#DE5A43] flex items-center justify-center transition shadow-sm flex-shrink-0"
                     title="Hapus dari History"
                     aria-label="Hapus Riwayat"
@@ -546,7 +552,10 @@
           <div class="flex items-center justify-end gap-2">
             <button
               type="button"
-              onclick="openEditModal(${meal.id}, '${jsName}', '${jsNotes}')"
+              data-meal-id="${meal.id}"
+              data-recipe-name="${safeName}"
+              data-notes="${safeNotes}"
+              onclick="openEditModal(this.dataset.mealId, this.dataset.recipeName, this.dataset.notes)"
               class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#F5E5D3] hover:bg-[#ebd3be] text-[#8C6D4C] flex items-center justify-center transition shadow-sm flex-shrink-0"
               title="Edit Note"
               aria-label="Edit Note"
@@ -557,7 +566,9 @@
             </button>
             <button
               type="button"
-              onclick="confirmDeleteHistory(${meal.id}, '${jsName}')"
+              data-meal-id="${meal.id}"
+              data-recipe-name="${safeName}"
+              onclick="confirmDeleteHistory(this.dataset.mealId, this.dataset.recipeName)"
               class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#FCE2DC] hover:bg-[#fad0c7] text-[#DE5A43] flex items-center justify-center transition shadow-sm flex-shrink-0"
               title="Hapus dari History"
               aria-label="Hapus Riwayat"
