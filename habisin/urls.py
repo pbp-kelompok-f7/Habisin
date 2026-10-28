@@ -27,8 +27,8 @@ urlpatterns = [
     path('meals-planner/', include('meals_planner.urls')),
     path('bookmarks/', include('bookmarks.urls')),
     path('comments/', include('comments.urls')),
-    path('auth/', include('authentication.urls')),
-    path('kulkas/', include('fridge.urls')),
+    path("auth/", include("authentication.urls")),
+    path("kulkas/", include("fridge.urls")),
 ]
 
 if settings.DEBUG:
