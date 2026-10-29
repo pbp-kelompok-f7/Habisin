@@ -4,6 +4,11 @@
 {% block title %}Saved Meals & History - Habisin{% endblock %}
 
 {% block content %}
+<!-- Hidden CSRF token holder for guaranteed AJAX availability -->
+<div class="hidden" id="csrf-holder">
+  {% csrf_token %}
+</div>
+
 <main class="site-container py-8 flex flex-col gap-8">
   <!-- Header / Title Section -->
   <header class="flex flex-col gap-1">
@@ -23,11 +28,11 @@
         Porsi yang diselamatkan
       </h2>
       <div class="flex items-baseline gap-3 mt-4">
-        <span class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
+        <span id="metric-portions" class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
           {{ total_portions }}
         </span>
         <span class="text-xs sm:text-sm text-gray-500 font-medium leading-snug">
-          &plusmn; {{ total_weight }} kg sisa bahan<br />diselamatkan
+          &plusmn; <span id="metric-weight">{{ total_weight }}</span> kg sisa bahan<br />diselamatkan
         </span>
       </div>
     </div>
@@ -38,7 +43,7 @@
         Resep yang sudah dituntaskan
       </h2>
       <div class="mt-4">
-        <span class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
+        <span id="metric-finished" class="font-heading font-extrabold text-5xl sm:text-6xl text-[#1E2922] leading-none">
           {{ recipes_finished }}
         </span>
       </div>
@@ -50,15 +55,27 @@
         Protein &amp; kalori terselamatkan
       </h2>
       <div class="flex items-baseline gap-6 mt-4">
-        <span class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
+        <span id="metric-protein" class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
           {{ total_protein }}gr
         </span>
-        <span class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
+        <span id="metric-calories" class="font-heading font-extrabold text-3xl sm:text-4xl text-[#1E2922]">
           {{ total_calories }}kkal
         </span>
       </div>
     </div>
   </section>
+
+  <!-- Notification / Alert Message -->
+  {% if messages %}
+  <div class="flex flex-col gap-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium flex items-center justify-between">
+      <span>{{ message }}</span>
+      <button type="button" onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-900 font-bold ml-4">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <!-- Controls Row (Tabs, Search, and Add Button) -->
   <section class="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
@@ -87,9 +104,10 @@
     <!-- Search & Add Button -->
     <div class="flex items-center gap-3 w-full md:w-auto justify-end">
       <!-- Search Bar -->
-      <div class="relative flex items-center flex-1 md:flex-initial">
+      <div class="relative flex items-center flex-1 md:flex-initial" style="min-width: 220px;">
         <svg
-          class="w-4 h-4 text-gray-500 absolute left-3 pointer-events-none"
+          class="w-4 h-4 text-gray-400 absolute pointer-events-none"
+          style="left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -103,38 +121,46 @@
           type="search"
           placeholder="Search"
           oninput="handleSearch(this.value)"
+          onsearch="handleSearch(this.value)"
           class="pl-9 pr-4 py-2 w-full md:w-56 bg-white border border-[#D9D0BE] rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#344C3D] shadow-sm transition"
+          style="padding-left: 38px; padding-right: 16px; height: 38px; -webkit-appearance: none;"
         />
       </div>
 
-      <!-- Add Button -->
-      <button
-        type="button"
-        class="bg-[#EDD9B8] hover:bg-[#e4cca7] text-[#344C3D] font-bold px-5 py-2 rounded-full text-sm shadow-sm transition flex items-center gap-1 flex-shrink-0"
-        title="Tambah resep simpanan baru"
+      <!-- Add Button (Redirects to Resep Discovery Page, hidden on History tab) -->
+      <a
+        id="add-meal-btn"
+        href="{% url 'discovery:show_discovery' %}"
+        class="bg-[#EDD9B8] hover:bg-[#e4cca7] text-[#344C3D] font-bold px-5 py-2 rounded-full text-sm shadow-sm transition flex items-center gap-1.5 flex-shrink-0"
+        title="Tambah resep dari Halaman Resep Discovery"
       >
         <span class="text-base font-extrabold leading-none">+</span>
         <span>Add</span>
-      </button>
+      </a>
     </div>
   </section>
 
-  <!-- Saved Meals Grid Section -->
+  <!-- Saved Meals Grid Section (Active by default) -->
   <section id="saved-section" class="flex flex-col gap-4">
     <div id="saved-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for meal in saved_meals %}
       <article
-        class="meal-card bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E9DFCE] flex flex-col transition hover:shadow-md"
+        id="meal-card-{{ meal.id }}"
+        class="meal-card bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E9DFCE] flex flex-col transition-all duration-300 hover:shadow-md"
         data-title="{{ meal.recipe_name|lower }}"
+        data-ingredients="{{ meal.ingredients|lower }}"
       >
         <!-- Meal Image -->
-        <div class="w-full h-52 overflow-hidden bg-amber-50">
+        <div class="w-full h-52 overflow-hidden bg-amber-50 relative">
           <img
             src="{{ meal.image_url|default:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80' }}"
             alt="{{ meal.recipe_name }}"
             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             loading="lazy"
           />
+          <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-[#1E2922] px-3 py-1 rounded-full shadow-sm">
+            {{ meal.portions_saved }} porsi
+          </span>
         </div>
 
         <!-- Meal Details -->
@@ -143,116 +169,228 @@
             {{ meal.recipe_name }}
           </h3>
 
-          <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-1">
+          {% if meal.ingredients %}
+          <p class="text-xs text-gray-500 line-clamp-1">
+            <span class="font-semibold text-gray-600">Bahan:</span> {{ meal.ingredients }}
+          </p>
+          {% endif %}
+
+          <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-2 border-t border-gray-100">
             <div class="flex items-center gap-4">
               <!-- Cooking Time -->
-              <span class="flex items-center gap-1.5 font-medium">
+              <span class="flex items-center gap-1.5 font-medium" title="Waktu memasak">
                 <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {{ meal.cooking_time_minutes }} menit
               </span>
 
-              <!-- Energy / Timer Badge -->
-              <span class="flex items-center gap-1.5 font-medium">
+              <!-- Nutrition -->
+              <span class="flex items-center gap-1.5 font-medium" title="Nutrisi">
                 <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
                 </svg>
-                {{ meal.cooking_time_minutes }} menit
+                {{ meal.calories_kcal }} kkal
               </span>
             </div>
 
-            <!-- Favorite Heart Button -->
+            <!-- Checkmark "Done" Button -->
             <button
               type="button"
-              onclick="toggleFavorite(this)"
-              class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-400 transition"
-              aria-label="Tandai favorit"
+              data-meal-id="{{ meal.id }}"
+              onclick="markMealDone(this.dataset.mealId, this)"
+              class="done-btn w-9 h-9 rounded-full border border-gray-300 bg-white hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-600 text-gray-400 flex items-center justify-center transition shadow-sm"
+              title="Tandai Selesai / Pindahkan ke History"
+              aria-label="Tandai Selesai"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </button>
           </div>
         </div>
       </article>
       {% empty %}
-      <div class="col-span-full py-12 text-center text-gray-500">
-        Belum ada menu yang disimpan. Klik "+ Add" untuk menambahkan resep baru.
+      <div id="saved-empty" class="col-span-full py-16 text-center flex flex-col items-center justify-center gap-3 bg-white rounded-3xl border border-[#E9DFCE] p-8">
+        <p class="text-base text-gray-600 font-medium">Belum ada menu yang disimpan.</p>
+        <a href="{% url 'discovery:show_discovery' %}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#344C3D] text-white font-bold text-sm shadow hover:bg-[#25372c] transition">
+          Jelajahi Resep di Discovery &rarr;
+        </a>
       </div>
       {% endfor %}
+      <div id="saved-search-empty" class="col-span-full py-12 text-center text-gray-500 font-medium hidden">
+        Tidak ada menu yang sesuai dengan pencarian.
+      </div>
     </div>
   </section>
 
-  <!-- History Grid Section (Initially Hidden) -->
+  <!-- History Table Section (Matching Mockup Screenshot) -->
   <section id="history-section" class="hidden flex flex-col gap-4">
-    <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for meal in history_meals %}
-      <article
-        class="meal-card bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E9DFCE] flex flex-col transition hover:shadow-md"
-        data-title="{{ meal.recipe_name|lower }}"
-      >
-        <!-- Meal Image -->
-        <div class="w-full h-52 overflow-hidden bg-amber-50">
-          <img
-            src="{{ meal.image_url|default:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80' }}"
-            alt="{{ meal.recipe_name }}"
-            class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            loading="lazy"
-          />
-        </div>
+    <div class="w-full bg-white rounded-2xl md:rounded-3xl border border-[#E9DFCE] overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <!-- Table Header (Warm Tan Bar) -->
+          <thead>
+            <tr class="bg-[#EDD9B8] text-[#1E2922] font-heading font-bold text-sm sm:text-base border-b border-[#E3CDAA]">
+              <th scope="col" class="py-4 px-6 w-3/12">Nama Menu</th>
+              <th scope="col" class="py-4 px-6 w-3/12">Komposisi</th>
+              <th scope="col" class="py-4 px-6 w-1/12 text-center">Porsi</th>
+              <th scope="col" class="py-4 px-6 w-4/12">Note</th>
+              <th scope="col" class="py-4 px-6 w-1/12 text-right sr-only">Aksi</th>
+            </tr>
+          </thead>
 
-        <!-- Meal Details -->
-        <div class="p-5 flex flex-col gap-3">
-          <h3 class="font-heading font-bold text-lg text-[#1E2922] truncate" title="{{ meal.recipe_name }}">
-            {{ meal.recipe_name }}
-          </h3>
+          <!-- Table Body (Clean White Rows with Dividers) -->
+          <tbody id="history-table-body" class="divide-y divide-[#EFE8DC]">
+            {% for meal in history_meals %}
+            <tr id="history-row-{{ meal.id }}" class="history-row hover:bg-[#FDFBF7] transition"
+                data-title="{{ meal.recipe_name|lower }}"
+                data-ingredients="{{ meal.ingredients|lower }}"
+                data-note="{{ meal.notes|lower }}">
+              <!-- Nama Menu -->
+              <td class="py-4 px-6 font-bold text-[#1E2922] text-sm sm:text-base align-middle">
+                {{ meal.recipe_name }}
+              </td>
 
-          <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-1">
-            <div class="flex items-center gap-4">
-              <span class="flex items-center gap-1.5 font-medium">
-                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ meal.cooking_time_minutes }} menit
-              </span>
-              <span class="flex items-center gap-1.5 font-medium">
-                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z" />
-                </svg>
-                {{ meal.cooking_time_minutes }} menit
-              </span>
-            </div>
+              <!-- Komposisi -->
+              <td class="py-4 px-6 text-gray-700 text-xs sm:text-sm font-medium align-middle">
+                {{ meal.ingredients|default:"-" }}
+              </td>
 
-            <button
-              type="button"
-              onclick="toggleFavorite(this)"
-              class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-400 transition"
-              aria-label="Tandai favorit"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </article>
-      {% empty %}
-      <div class="col-span-full py-12 text-center text-gray-500">
-        Belum ada riwayat masakan yang selesai.
+              <!-- Porsi -->
+              <td class="py-4 px-6 font-bold text-[#1E2922] text-sm sm:text-base text-center align-middle" id="history-portions-{{ meal.id }}">
+                {{ meal.portions_saved }}
+              </td>
+
+              <!-- Note -->
+              <td class="py-4 px-6 text-gray-700 text-xs sm:text-sm leading-relaxed align-middle" id="history-note-{{ meal.id }}">
+                {{ meal.notes|default:"-" }}
+              </td>
+
+              <!-- Action Buttons: Edit and Delete -->
+              <td class="py-4 px-6 align-middle text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <!-- Edit Note Button (Warm Beige Rounded Square with Pencil) -->
+                  <button
+                    type="button"
+                    data-meal-id="{{ meal.id }}"
+                    data-recipe-name="{{ meal.recipe_name }}"
+                    data-notes="{{ meal.notes }}"
+                    onclick="openEditModal(this.dataset.mealId, this.dataset.recipeName, this.dataset.notes)"
+                    class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#F5E5D3] hover:bg-[#ebd3be] text-[#8C6D4C] flex items-center justify-center transition shadow-sm flex-shrink-0"
+                    title="Edit Note"
+                    aria-label="Edit Note"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+
+                  <!-- Delete History Button (Light Peach/Red Rounded Square with Trash) -->
+                  <button
+                    type="button"
+                    data-meal-id="{{ meal.id }}"
+                    data-recipe-name="{{ meal.recipe_name }}"
+                    onclick="confirmDeleteHistory(this.dataset.mealId, this.dataset.recipeName)"
+                    class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#FCE2DC] hover:bg-[#fad0c7] text-[#DE5A43] flex items-center justify-center transition shadow-sm flex-shrink-0"
+                    title="Hapus dari History"
+                    aria-label="Hapus Riwayat"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr id="history-empty-row">
+              <td colspan="5" class="py-12 px-6 text-center text-gray-500">
+                Belum ada riwayat masakan yang selesai.
+              </td>
+            </tr>
+            {% endfor %}
+            <tr id="history-search-empty-row" class="hidden">
+              <td colspan="5" class="py-12 px-6 text-center text-gray-500 font-medium">
+                Tidak ada riwayat masakan yang sesuai dengan pencarian.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      {% endfor %}
     </div>
   </section>
 </main>
 
+<!-- Edit Note Modal Dialog -->
+<div id="edit-note-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+  <div class="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md mx-4 border border-[#E9DFCE] shadow-2xl flex flex-col gap-5 animate-fade-in">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-heading font-extrabold text-xl text-[#1E2922]">Edit Note</h3>
+        <p id="edit-modal-recipe-name" class="text-xs text-gray-500 font-medium mt-0.5"></p>
+      </div>
+      <button type="button" onclick="closeEditModal()" class="w-8 h-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center font-bold text-lg transition">
+        &times;
+      </button>
+    </div>
+
+    <form id="edit-note-form" onsubmit="submitEditNote(event)">
+      <input type="hidden" id="edit-modal-meal-id" value="" />
+      <div class="flex flex-col gap-2">
+        <label for="edit-modal-note-input" class="text-xs font-bold text-gray-700">Catatan Masakan:</label>
+        <textarea
+          id="edit-modal-note-input"
+          rows="4"
+          placeholder="Tulis catatan, rasa, atau tips memasak..."
+          class="w-full p-3.5 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#344C3D] focus:bg-white transition resize-none"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 mt-5">
+        <button
+          type="button"
+          onclick="closeEditModal()"
+          class="px-5 py-2 rounded-full border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-100 transition"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          id="edit-modal-submit-btn"
+          class="px-6 py-2 rounded-full bg-[#344C3D] hover:bg-[#25372c] text-white font-bold text-sm shadow transition"
+        >
+          Simpan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+  // Dynamic URL configuration based on Django URL resolution
+  const BASE_URL = "{% url 'saved_meals:show_saved_meals' %}";
+  const COMPLETE_URL = (id) => `${BASE_URL}complete/${id}/`;
+  const EDIT_NOTE_URL = (id) => `${BASE_URL}history/${id}/edit_note/`;
+  const DELETE_URL = (id) => `${BASE_URL}history/${id}/delete/`;
+
+  // Robust CSRF token extraction
+  function getCsrfToken() {
+    const input = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (input && input.value) return input.value;
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    if (cookie) return decodeURIComponent(cookie.split('=')[1]);
+    return '{{ csrf_token }}';
+  }
+
+  // Tab switcher
   function switchTab(tab) {
     const savedTab = document.getElementById('tab-saved');
     const historyTab = document.getElementById('tab-history');
     const savedSection = document.getElementById('saved-section');
     const historySection = document.getElementById('history-section');
+    const addBtn = document.getElementById('add-meal-btn');
+    const searchInput = document.getElementById('search-input');
 
     if (tab === 'saved') {
       savedTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 shadow-sm bg-[#344C3D] text-white";
@@ -263,6 +401,9 @@
 
       savedSection.classList.remove('hidden');
       historySection.classList.add('hidden');
+
+      // Show Add button on Saved Meals tab
+      if (addBtn) addBtn.classList.remove('hidden');
     } else {
       historyTab.className = "tab-btn px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-200 shadow-sm bg-[#344C3D] text-white";
       historyTab.setAttribute('aria-selected', 'true');
@@ -272,39 +413,344 @@
 
       historySection.classList.remove('hidden');
       savedSection.classList.add('hidden');
+
+      // Hide Add button on History tab (matching mockup screenshot)
+      if (addBtn) addBtn.classList.add('hidden');
+    }
+
+    // Re-apply search filter for current tab
+    if (searchInput) {
+      handleSearch(searchInput.value);
     }
   }
 
+  // Live search filtering across current tab
   function handleSearch(query) {
-    const q = query.toLowerCase().trim();
-    const activeSection = document.querySelector('section#saved-section:not(.hidden), section#history-section:not(.hidden)');
-    if (!activeSection) return;
+    const q = (query || '').toLowerCase().trim();
+    const savedSection = document.getElementById('saved-section');
+    const isSavedTab = savedSection && !savedSection.classList.contains('hidden');
 
-    const cards = activeSection.querySelectorAll('.meal-card');
-    cards.forEach(card => {
-      const title = card.getAttribute('data-title') || '';
-      if (title.includes(q)) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
+    if (isSavedTab) {
+      const cards = document.querySelectorAll('#saved-grid .meal-card');
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const ing = card.getAttribute('data-ingredients') || '';
+        if (title.includes(q) || ing.includes(q)) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      const emptySearchEl = document.getElementById('saved-search-empty');
+      if (emptySearchEl) {
+        if (visibleCount === 0 && cards.length > 0 && q.length > 0) {
+          emptySearchEl.classList.remove('hidden');
+        } else {
+          emptySearchEl.classList.add('hidden');
+        }
       }
-    });
+    } else {
+      const rows = document.querySelectorAll('#history-table-body .history-row');
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const title = row.getAttribute('data-title') || '';
+        const ing = row.getAttribute('data-ingredients') || '';
+        const note = row.getAttribute('data-note') || '';
+        if (title.includes(q) || ing.includes(q) || note.includes(q)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      const emptyRowEl = document.getElementById('history-search-empty-row');
+      if (emptyRowEl) {
+        if (visibleCount === 0 && rows.length > 0 && q.length > 0) {
+          emptyRowEl.classList.remove('hidden');
+        } else {
+          emptyRowEl.classList.add('hidden');
+        }
+      }
+    }
   }
 
-  function toggleFavorite(btn) {
-    const svg = btn.querySelector('svg');
-    const isFav = btn.getAttribute('data-favorite') === 'true';
+  // Update top impact metric numbers dynamically
+  function updateMetrics(metrics) {
+    if (!metrics) return;
+    if (document.getElementById('metric-portions')) {
+      document.getElementById('metric-portions').textContent = metrics.total_portions;
+    }
+    if (document.getElementById('metric-weight')) {
+      document.getElementById('metric-weight').textContent = metrics.total_weight;
+    }
+    if (document.getElementById('metric-finished')) {
+      document.getElementById('metric-finished').textContent = metrics.recipes_finished;
+    }
+    if (document.getElementById('metric-protein')) {
+      document.getElementById('metric-protein').textContent = metrics.total_protein + 'gr';
+    }
+    if (document.getElementById('metric-calories')) {
+      document.getElementById('metric-calories').textContent = metrics.total_calories + 'kkal';
+    }
+  }
 
-    if (isFav) {
-      btn.setAttribute('data-favorite', 'false');
-      btn.classList.remove('text-red-500', 'border-red-400');
-      btn.classList.add('text-gray-400', 'border-gray-300');
-      svg.setAttribute('fill', 'none');
+  // Helper to escape HTML safely
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  // Helper to add a history row to the DOM table dynamically
+  function addOrUpdateHistoryRow(meal) {
+    if (!meal) return;
+    const emptyRow = document.getElementById('history-empty-row');
+    if (emptyRow) emptyRow.remove();
+
+    const tbody = document.getElementById('history-table-body');
+    let row = document.getElementById(`history-row-${meal.id}`);
+
+    if (row) {
+      // Row already exists, update portion count
+      const portionCell = document.getElementById(`history-portions-${meal.id}`);
+      if (portionCell) {
+        portionCell.textContent = meal.portions;
+        portionCell.classList.add('text-emerald-700', 'scale-110');
+        setTimeout(() => portionCell.classList.remove('text-emerald-700', 'scale-110'), 800);
+      }
     } else {
-      btn.setAttribute('data-favorite', 'true');
-      btn.classList.add('text-red-500', 'border-red-400');
-      btn.classList.remove('text-gray-400', 'border-gray-300');
-      svg.setAttribute('fill', 'currentColor');
+      // Create new row
+      row = document.createElement('tr');
+      row.id = `history-row-${meal.id}`;
+      row.className = 'history-row hover:bg-[#FDFBF7] transition';
+      row.setAttribute('data-title', (meal.recipe_name || '').toLowerCase());
+      row.setAttribute('data-ingredients', (meal.ingredients || '').toLowerCase());
+      row.setAttribute('data-note', (meal.notes || '').toLowerCase());
+
+      const safeName = escapeHtml(meal.recipe_name);
+      const safeIng = escapeHtml(meal.ingredients || '-');
+      const safeNotes = escapeHtml(meal.notes || '-');
+      const jsName = (meal.recipe_name || '').replace(/'/g, "\\'");
+      const jsNotes = (meal.notes || '').replace(/'/g, "\\'");
+
+      row.innerHTML = `
+        <td class="py-4 px-6 font-bold text-[#1E2922] text-sm sm:text-base align-middle">
+          ${safeName}
+        </td>
+        <td class="py-4 px-6 text-gray-700 text-xs sm:text-sm font-medium align-middle">
+          ${safeIng}
+        </td>
+        <td class="py-4 px-6 font-bold text-[#1E2922] text-sm sm:text-base text-center align-middle" id="history-portions-${meal.id}">
+          ${meal.portions}
+        </td>
+        <td class="py-4 px-6 text-gray-700 text-xs sm:text-sm leading-relaxed align-middle" id="history-note-${meal.id}">
+          ${safeNotes}
+        </td>
+        <td class="py-4 px-6 align-middle text-right">
+          <div class="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              data-meal-id="${meal.id}"
+              data-recipe-name="${safeName}"
+              data-notes="${safeNotes}"
+              onclick="openEditModal(this.dataset.mealId, this.dataset.recipeName, this.dataset.notes)"
+              class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#F5E5D3] hover:bg-[#ebd3be] text-[#8C6D4C] flex items-center justify-center transition shadow-sm flex-shrink-0"
+              title="Edit Note"
+              aria-label="Edit Note"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              data-meal-id="${meal.id}"
+              data-recipe-name="${safeName}"
+              onclick="confirmDeleteHistory(this.dataset.mealId, this.dataset.recipeName)"
+              class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#FCE2DC] hover:bg-[#fad0c7] text-[#DE5A43] flex items-center justify-center transition shadow-sm flex-shrink-0"
+              title="Hapus dari History"
+              aria-label="Hapus Riwayat"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.prepend(row);
+    }
+  }
+
+  // Mark Saved Meal as Done/Cooked (Checkmark Button)
+  async function markMealDone(mealId, btn) {
+    if (!mealId) return;
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+
+    try {
+      const response = await fetch(COMPLETE_URL(mealId), {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Smoothly animate removal of saved meal card
+        const card = document.getElementById(`meal-card-${mealId}`);
+        if (card) {
+          card.style.transition = 'all 0.3s ease-out';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+          setTimeout(() => {
+            card.remove();
+            // If all cards gone, show empty state
+            const remaining = document.querySelectorAll('#saved-grid .meal-card');
+            if (remaining.length === 0) {
+              const grid = document.getElementById('saved-grid');
+              grid.innerHTML = `
+                <div id="saved-empty" class="col-span-full py-16 text-center flex flex-col items-center justify-center gap-3 bg-white rounded-3xl border border-[#E9DFCE] p-8">
+                  <p class="text-base text-gray-600 font-medium">Belum ada menu yang disimpan.</p>
+                  <a href="{% url 'discovery:show_discovery' %}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#344C3D] text-white font-bold text-sm shadow hover:bg-[#25372c] transition">
+                    Jelajahi Resep di Discovery &rarr;
+                  </a>
+                </div>`;
+            }
+          }, 300);
+        }
+
+        // Add or update row in History table dynamically
+        if (data.meal) {
+          addOrUpdateHistoryRow(data.meal);
+        } else if (data.action === 'incremented' && data.history_meal_id) {
+          const portionCell = document.getElementById(`history-portions-${data.history_meal_id}`);
+          if (portionCell && data.new_portions !== undefined) {
+            portionCell.textContent = data.new_portions;
+            portionCell.classList.add('text-emerald-700', 'scale-110');
+            setTimeout(() => portionCell.classList.remove('text-emerald-700', 'scale-110'), 800);
+          }
+        }
+
+        // Update metric counters
+        updateMetrics(data.metrics);
+      }
+    } catch (err) {
+      console.error('Error marking meal done:', err);
+      alert('Terjadi kesalahan saat memindahkan ke history.');
+      btn.disabled = false;
+      btn.classList.remove('opacity-50');
+    }
+  }
+
+  // Open Edit Note Modal
+  function openEditModal(mealId, recipeName, currentNote) {
+    document.getElementById('edit-modal-meal-id').value = mealId;
+    document.getElementById('edit-modal-recipe-name').textContent = recipeName || '';
+    document.getElementById('edit-modal-note-input').value = (currentNote === '-' ? '' : currentNote) || '';
+    document.getElementById('edit-note-modal').classList.remove('hidden');
+    document.getElementById('edit-modal-note-input').focus();
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-note-modal').classList.add('hidden');
+  }
+
+  // Submit Edited Note via AJAX
+  async function submitEditNote(e) {
+    e.preventDefault();
+    const mealId = document.getElementById('edit-modal-meal-id').value;
+    const noteText = document.getElementById('edit-modal-note-input').value.trim();
+    const submitBtn = document.getElementById('edit-modal-submit-btn');
+
+    if (!mealId) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
+
+    try {
+      const response = await fetch(EDIT_NOTE_URL(mealId), {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ notes: noteText }),
+      });
+
+      if (!response.ok) throw new Error('Gagal menyimpan catatan');
+
+      const data = await response.json();
+      if (data.success) {
+        const noteCell = document.getElementById(`history-note-${mealId}`);
+        if (noteCell) {
+          noteCell.textContent = data.notes || '-';
+        }
+        const row = document.getElementById(`history-row-${mealId}`);
+        if (row) {
+          row.setAttribute('data-note', (data.notes || '').toLowerCase());
+        }
+        closeEditModal();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Gagal memperbarui catatan.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Simpan';
+    }
+  }
+
+  // Confirm and Delete History Record via AJAX
+  async function confirmDeleteHistory(mealId, recipeName) {
+    if (!confirm(`Hapus riwayat masakan '${recipeName}'?`)) return;
+
+    try {
+      const response = await fetch(DELETE_URL(mealId), {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      if (!response.ok) throw new Error('Gagal menghapus riwayat');
+
+      const data = await response.json();
+      if (data.success) {
+        const row = document.getElementById(`history-row-${mealId}`);
+        if (row) {
+          row.style.transition = 'all 0.3s ease-out';
+          row.style.opacity = '0';
+          setTimeout(() => {
+            row.remove();
+            const remaining = document.querySelectorAll('#history-table-body .history-row');
+            if (remaining.length === 0) {
+              const tbody = document.getElementById('history-table-body');
+              tbody.innerHTML = `
+                <tr id="history-empty-row">
+                  <td colspan="5" class="py-12 px-6 text-center text-gray-500">
+                    Belum ada riwayat masakan yang selesai.
+                  </td>
+                </tr>`;
+            }
+          }, 300);
+        }
+        updateMetrics(data.metrics);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus riwayat masakan.');
     }
   }
 </script>

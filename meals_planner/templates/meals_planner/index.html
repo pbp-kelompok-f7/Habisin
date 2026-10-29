@@ -13,11 +13,20 @@
 <main class="planner" data-update-url="{% url 'meals_planner:update_meal' %}" data-selected-day="{{ selected_day }}">
   <h1>Meals Planner</h1>
   <p class="planner-subtitle" id="planner-subtitle">{% if selected_day == state.today %}Menu untuk hari ini!{% else %}Menu untuk hari {{ selected_name }}!{% endif %}</p>
+  <p class="planner-account">Rencana tersimpan di akunmu. Menu minggu sebelumnya tetap bisa dibuka.</p>
+
+  <nav class="planner-week" aria-label="Pilih minggu">
+    {% if previous_week %}<a class="week-arrow" href="?week={{ previous_week }}&amp;day={{ selected_day }}" data-week-link aria-label="Minggu sebelumnya">←</a>{% endif %}
+    <p class="week-label">{{ week_label }}</p>
+    {% if next_week %}<a class="week-arrow" href="?week={{ next_week }}&amp;day={{ selected_day }}" data-week-link aria-label="Minggu berikutnya">→</a>{% endif %}
+    {% if state.week != current_week %}<a class="week-current" href="?week={{ current_week }}" data-week-link>Minggu ini</a>{% else %}<span class="week-current is-current">Minggu ini</span>{% endif %}
+  </nav>
 
   <nav class="planner-days" aria-label="Pilih hari">
     {% for day in days %}
-    <a href="?day={{ day.index }}" class="planner-day{% if day.index == selected_day %} is-selected{% endif %}" data-day="{{ day.index }}" data-name="{{ day.name }}"{% if day.index == selected_day %} aria-current="date"{% endif %}>
-      {{ day.short }}{% if day.index == state.today %}<span class="today-label"> · hari ini</span>{% endif %}
+    <a href="?week={{ state.week }}&amp;day={{ day.index }}" class="planner-day{% if day.index == selected_day %} is-selected{% endif %}" data-day="{{ day.index }}" data-name="{{ day.name }}" data-date-label="{{ day.date_label }}"{% if day.index == selected_day %} aria-current="date"{% endif %}>
+      <span>{{ day.short }}{% if day.index == state.today %}<span class="today-label"> · hari ini</span>{% endif %}</span>
+      <span class="planner-day-date">{{ day.date_label }}</span>
     </a>
     {% endfor %}
   </nav>
@@ -41,27 +50,28 @@
 
     <aside class="planner-summary" aria-label="Ringkasan mingguan">
       <section class="planner-panel shopping-panel">
-        <h2>Bahan yang perlu dibeli</h2>
+        <h2>Bahan menu mingguan</h2>
         <ul class="ingredient-list" id="ingredient-list">
           {% for ingredient in state.ingredients %}<li>{{ ingredient }}</li>{% endfor %}
         </ul>
-        <p class="shopping-empty" id="shopping-empty"{% if state.ingredients %} hidden{% endif %}>Tambahkan menu untuk melihat bahan belanjamu.</p>
-        <p class="panel-note">Dihitung dari semua menu yang kamu rencanakan minggu ini.</p>
+        <p class="shopping-empty" id="shopping-empty"{% if state.ingredients %} hidden{% endif %}>{% if state.total %}Daftar bahan belum tersedia untuk menu yang dipilih.{% else %}Tambahkan menu untuk melihat daftar bahannya.{% endif %}</p>
+        <p class="panel-note" id="ingredients-incomplete"{% if not state.missing_ingredients %} hidden{% endif %}>Sebagian menu belum memiliki daftar bahan. Periksa resepnya sebelum berbelanja.</p>
+        <p class="panel-note">Cocokkan daftar bahan ini dengan stok kulkas sebelum berbelanja.</p>
       </section>
 
       <section class="planner-panel progress-panel">
-        <h2>Progres minggu ini</h2>
+        <h2>Menu terjadwal</h2>
         <p class="progress-total"><strong id="weekly-total">{{ state.total }}</strong><span>dari 21 waktu makan</span></p>
         <nav class="progress-days" aria-label="Progres menu per hari">
           {% for day in days %}
-          <a href="?day={{ day.index }}" data-progress-day="{{ day.index }}"{% if day.index == selected_day %} class="is-selected" aria-current="date"{% endif %}>{{ day.short }} <span>{{ day.count }}/3</span></a>
+          <a href="?week={{ state.week }}&amp;day={{ day.index }}" data-progress-day="{{ day.index }}"{% if day.index == selected_day %} class="is-selected" aria-current="date"{% endif %}>{{ day.short }} <span>{{ day.count }}/3</span></a>
           {% endfor %}
         </nav>
       </section>
-      <p class="planner-example" id="planner-example"{% if not state.example %} hidden{% endif %}>Contoh rencana untuk memulai. Sesuaikan menu dengan seleramu.</p>
     </aside>
   </div>
   <p class="planner-status" id="planner-status" role="status" aria-live="polite"></p>
+  <a class="planner-recovery" id="planner-recovery" href="?week={{ state.week }}&amp;day={{ selected_day }}" hidden>Muat ulang</a>
   <noscript><p class="planner-noscript">Aktifkan JavaScript untuk menambah, mengganti, dan menghapus menu.</p></noscript>
 </main>
 
@@ -70,22 +80,25 @@
     <div><p class="dialog-eyebrow" id="recipe-dialog-day"></p><h2 id="recipe-dialog-title">Pilih menu</h2></div>
     <button class="dialog-close" type="button" aria-label="Tutup pilihan menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button>
   </div>
-  <p id="recipe-dialog-description">Pilih resep untuk melengkapi rencana makanmu.</p>
+  <p id="recipe-dialog-description">Pilih resep tersimpan milikmu, atau gunakan resep contoh untuk memulai.</p>
   <form id="recipe-form">
     {% csrf_token %}
     <label class="recipe-search-label" for="recipe-search">Cari resep</label>
     <input id="recipe-search" class="recipe-search" type="search" placeholder="Cari nama resep atau bahan..." autocomplete="off">
     <div class="recipe-options">
       {% for recipe in recipes %}
+      {% if recipe.selectable != False %}
       <button class="recipe-option" type="button" data-recipe="{{ recipe.id }}" data-search="{{ recipe.name|lower }} {{ recipe.ingredients|join:' ' }}">
-        <img src="{{ recipe.image_url }}" width="88" height="76" alt="">
-        <span class="recipe-option-copy"><strong>{{ recipe.name }}</strong><span>{{ recipe.minutes }} menit · {{ recipe.ingredients|join:', ' }}</span></span>
+        {% if recipe.image_url %}<img src="{{ recipe.image_url }}" width="88" height="76" alt="" loading="lazy">{% else %}<span class="recipe-image-placeholder" aria-hidden="true">🍽</span>{% endif %}
+        <span class="recipe-option-copy"><strong>{{ recipe.name }}</strong><span class="recipe-source{% if recipe.is_example %} is-example{% endif %}">{{ recipe.source_label }}</span><span>{% if recipe.minutes %}{{ recipe.minutes }} menit{% endif %}{% if recipe.minutes and recipe.ingredients %} · {% endif %}{{ recipe.ingredients|join:', ' }}</span></span>
         <span class="recipe-option-plus" aria-hidden="true">+</span>
       </button>
+      {% endif %}
       {% endfor %}
     </div>
     <p id="recipe-no-results" hidden>Resep belum ditemukan. Coba nama bahan lain.</p>
     <p class="dialog-error" id="dialog-error" role="alert"></p>
+    <a class="planner-recovery" id="dialog-recovery" href="?week={{ state.week }}&amp;day={{ selected_day }}" hidden>Muat ulang</a>
   </form>
 </dialog>
 {{ state|json_script:"planner-state" }}
