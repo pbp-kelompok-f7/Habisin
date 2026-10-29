@@ -6,7 +6,6 @@ from saved_meals.views import (
     mark_meal_done,
     edit_history_note,
     delete_meal,
-    save_recipe,
 )
 
 app_name = "saved_meals"
@@ -18,5 +17,4 @@ urlpatterns = [
     path('complete/<int:meal_id>/', mark_meal_done, name="mark_meal_done"),
     path('history/<int:meal_id>/edit_note/', edit_history_note, name="edit_history_note"),
     path('delete/<int:meal_id>/', delete_meal, name="delete_meal"),
-    path('save/<int:recipe_id>/', save_recipe, name="save_recipe"),
 ]

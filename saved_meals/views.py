@@ -4,10 +4,36 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
-from django.contrib import messages
 from .models import SavedMeal
 from .forms import SavedMealForm, HistoryNoteForm
-from .spoonacular import get_recipe_by_id, seed_default_meals_if_empty
+
+
+def _seed_default_meals(user):
+    if not SavedMeal.objects.filter(status='HISTORY', user=user).exists():
+        history_seeds = [
+            (102, 'Ayam Bakar Madu', 40, 3, 0.6, 11, 900, 'Ayam, Madu, air', 'Enak bangeett, bakal bikin lagi', 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=800&q=80'),
+            (101, 'Sup Ayam Wortel Kentang', 30, 3, 0.5, 8, 750, 'Ayam, Wortel, Kentang', 'Kalo dimakan pas lagi dingin enak', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (103, 'Omelet Bayam Keju', 15, 1, 0.2, 4, 350, 'Telur, Bayam, Keju', 'Bagus buat sarapan masaknya cepet', 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, note, img in history_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, notes=note, status='HISTORY'
+            )
+
+    if not SavedMeal.objects.filter(status='SAVED', user=user).exists():
+        saved_seeds = [
+            (101, 'Sup Ayam Wortel Kentang', 30, 2, 0.4, 10, 400, 'Ayam, Wortel, Kentang', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (104, 'Nasi Goreng Sayur Sisa Kulkas', 20, 2, 0.4, 14, 480, 'Nasi, Wortel, Telur, Daun Bawang', 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80'),
+            (105, 'Tumis Buncis & Telur Orak-Arik', 15, 2, 0.3, 12, 280, 'Buncis, Telur, Bawang Merah, Bawang Putih', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, img in saved_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, status='SAVED'
+            )
 
 
 def _get_meals(request, status, apply_filter=True):
@@ -63,7 +89,7 @@ def _compute_metrics(history_qs):
 @login_required
 @ensure_csrf_cookie
 def show_saved_meals(request):
-    seed_default_meals_if_empty(request.user)
+    _seed_default_meals(request.user)
 
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
@@ -85,7 +111,7 @@ def show_saved_meals(request):
 @login_required
 @require_GET
 def saved_meals_json(request):
-    seed_default_meals_if_empty(request.user)
+    _seed_default_meals(request.user)
 
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
@@ -179,24 +205,3 @@ def delete_meal(request, meal_id):
         'meal_id': meal_id,
         'metrics': metrics,
     })
-
-
-@login_required
-def save_recipe(request, recipe_id):
-    recipe_data = get_recipe_by_id(recipe_id)
-    if recipe_data:
-        SavedMeal.objects.create(
-            user=request.user,
-            recipe_id=recipe_data['id'],
-            recipe_name=recipe_data['title'],
-            image_url=recipe_data.get('image', ''),
-            cooking_time_minutes=recipe_data.get('readyInMinutes', 30),
-            portions_saved=recipe_data.get('servings', 1),
-            ingredients_saved_kg=recipe_data.get('ingredients_kg', 0.2),
-            protein_grams=recipe_data.get('protein', 10),
-            calories_kcal=recipe_data.get('calories', 300),
-            ingredients=recipe_data.get('ingredients', ''),
-            status='SAVED',
-        )
-        messages.success(request, f"Resep '{recipe_data['title']}' berhasil ditambahkan!")
-    return redirect('saved_meals:show_saved_meals')
