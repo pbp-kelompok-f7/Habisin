@@ -1,215 +1,207 @@
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
-from django.contrib import messages
 from .models import SavedMeal
-from .spoonacular import (
-    get_recipe_by_id,
-    seed_default_meals_if_empty,
-)
+from .forms import SavedMealForm, HistoryNoteForm
 
-def _get_history_queryset(request):
-    """Retrieve history meals for current user or default unassigned meals."""
-    if request.user.is_authenticated:
-        qs = SavedMeal.objects.filter(status='HISTORY').filter(
-            Q(user=request.user) | Q(user__isnull=True)
+
+def _seed_default_meals(user):
+    if not SavedMeal.objects.filter(status='HISTORY', user=user).exists():
+        history_seeds = [
+            (102, 'Ayam Bakar Madu', 40, 3, 0.6, 11, 900, 'Ayam, Madu, air', 'Enak bangeett, bakal bikin lagi', 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=800&q=80'),
+            (101, 'Sup Ayam Wortel Kentang', 30, 3, 0.5, 8, 750, 'Ayam, Wortel, Kentang', 'Kalo dimakan pas lagi dingin enak', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (103, 'Omelet Bayam Keju', 15, 1, 0.2, 4, 350, 'Telur, Bayam, Keju', 'Bagus buat sarapan masaknya cepet', 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, note, img in history_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, notes=note, status='HISTORY'
+            )
+
+    if not SavedMeal.objects.filter(status='SAVED', user=user).exists():
+        saved_seeds = [
+            (101, 'Sup Ayam Wortel Kentang', 30, 2, 0.4, 10, 400, 'Ayam, Wortel, Kentang', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (104, 'Nasi Goreng Sayur Sisa Kulkas', 20, 2, 0.4, 14, 480, 'Nasi, Wortel, Telur, Daun Bawang', 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80'),
+            (105, 'Tumis Buncis & Telur Orak-Arik', 15, 2, 0.3, 12, 280, 'Buncis, Telur, Bawang Merah, Bawang Putih', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, img in saved_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, status='SAVED'
+            )
+
+
+def _get_meals(request, status, apply_filter=True):
+    qs = SavedMeal.objects.filter(status=status, user=request.user)
+
+    if not apply_filter:
+        return qs.order_by('-updated_at', '-id')
+
+    q = request.GET.get('q', '').strip()
+    time_filter = request.GET.get('time_filter', '')
+    calorie_filter = request.GET.get('calorie_filter', '')
+
+    if q:
+        qs = qs.filter(
+            Q(recipe_name__icontains=q)
+            | Q(ingredients__icontains=q)
+            | Q(notes__icontains=q)
         )
-    else:
-        qs = SavedMeal.objects.filter(status='HISTORY')
-    return qs.order_by('-updated_at', '-created_at')
 
-def _get_saved_queryset(request):
-    """Retrieve saved meals for current user or default unassigned meals."""
-    if request.user.is_authenticated:
-        qs = SavedMeal.objects.filter(status='SAVED').filter(
-            Q(user=request.user) | Q(user__isnull=True)
-        )
-    else:
-        qs = SavedMeal.objects.filter(status='SAVED')
-    return qs.order_by('-created_at')
+    if time_filter == 'quick':
+        qs = qs.filter(cooking_time_minutes__lte=20)
+    elif time_filter == 'medium':
+        qs = qs.filter(cooking_time_minutes__gt=20, cooking_time_minutes__lte=35)
+    elif time_filter == 'long':
+        qs = qs.filter(cooking_time_minutes__gt=35)
 
-def _compute_metrics(history_meals):
-    """Compute aggregated impact stats with default fallbacks."""
-    portions_agg = history_meals.aggregate(total=Sum('portions_saved'))['total']
-    total_portions = portions_agg if portions_agg is not None else 7
+    if calorie_filter == 'low':
+        qs = qs.filter(calories_kcal__lte=350)
+    elif calorie_filter == 'medium':
+        qs = qs.filter(calories_kcal__gt=350, calories_kcal__lte=500)
+    elif calorie_filter == 'high':
+        qs = qs.filter(calories_kcal__gt=500)
 
-    weight_agg = history_meals.aggregate(total=Sum('ingredients_saved_kg'))['total']
-    total_weight = round(weight_agg, 1) if weight_agg is not None else 1.3
+    return qs.order_by('-updated_at', '-id')
 
-    history_count = history_meals.count()
-    recipes_finished = history_count if history_count > 0 else 3
 
-    protein_agg = history_meals.aggregate(total=Sum('protein_grams'))['total']
-    total_protein = protein_agg if protein_agg is not None else 23
-
-    calories_agg = history_meals.aggregate(total=Sum('calories_kcal'))['total']
-    total_calories = calories_agg if calories_agg is not None else 2000
-
+def _compute_metrics(history_qs):
+    agg = history_qs.aggregate(
+        portions=Sum('portions_saved'),
+        weight=Sum('ingredients_saved_kg'),
+        protein=Sum('protein_grams'),
+        calories=Sum('calories_kcal'),
+    )
     return {
-        'total_portions': total_portions,
-        'total_weight': total_weight,
-        'recipes_finished': recipes_finished,
-        'total_protein': total_protein,
-        'total_calories': total_calories,
+        'total_portions': agg['portions'] or 0,
+        'total_weight': round(agg['weight'] or 0.0, 1),
+        'recipes_finished': history_qs.count(),
+        'total_protein': agg['protein'] or 0,
+        'total_calories': agg['calories'] or 0,
     }
 
+
+@login_required
 @ensure_csrf_cookie
 def show_saved_meals(request):
-    user = request.user if request.user.is_authenticated else None
-    seed_default_meals_if_empty(user)
+    _seed_default_meals(request.user)
 
-    saved_meals = _get_saved_queryset(request)
-    history_meals = _get_history_queryset(request)
-    metrics = _compute_metrics(history_meals)
+    saved_meals = _get_meals(request, 'SAVED')
+    history_meals = _get_meals(request, 'HISTORY')
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
 
     context = {
         **metrics,
         'saved_meals': saved_meals,
         'history_meals': history_meals,
+        'meal_form': SavedMealForm(),
+        'note_form': HistoryNoteForm(),
+        'q': request.GET.get('q', ''),
+        'time_filter': request.GET.get('time_filter', ''),
+        'calorie_filter': request.GET.get('calorie_filter', ''),
     }
-    return render(request, "saved_meals/index.html", context)
+    return render(request, 'saved_meals/index.html', context)
 
-@require_POST
-def mark_meal_done(request, meal_id):
-    """
-    Handle marking a saved meal as done/cooked:
-    - If recipe already exists in history, increment portions and delete saved instance.
-    - If new, transition status to HISTORY.
-    """
-    saved_meal = get_object_or_404(SavedMeal, id=meal_id, status='SAVED')
 
-    current_user = request.user if request.user.is_authenticated else None
-    recipe_id = saved_meal.recipe_id
+@login_required
+@require_GET
+def saved_meals_json(request):
+    _seed_default_meals(request.user)
 
-    # Check for existing history record with same recipe_id or name
-    history_qs = SavedMeal.objects.filter(status='HISTORY')
-    if current_user:
-        history_qs = history_qs.filter(Q(user=current_user) | Q(user__isnull=True))
-    else:
-        history_qs = history_qs.filter(user__isnull=True)
-
-    existing_history = None
-    if recipe_id:
-        existing_history = history_qs.filter(recipe_id=recipe_id).first()
-    if not existing_history and saved_meal.recipe_name:
-        existing_history = history_qs.filter(recipe_name__iexact=saved_meal.recipe_name).first()
-
-    if existing_history:
-        # Increment portion count and nutritional metrics
-        existing_history.portions_saved += saved_meal.portions_saved
-        existing_history.ingredients_saved_kg = round(
-            existing_history.ingredients_saved_kg + saved_meal.ingredients_saved_kg, 1
-        )
-        existing_history.protein_grams += saved_meal.protein_grams
-        existing_history.calories_kcal += saved_meal.calories_kcal
-        if current_user and not existing_history.user:
-            existing_history.user = current_user
-        existing_history.save()
-
-        # Remove from saved meals
-        saved_meal.delete()
-
-        action = 'incremented'
-        history_meal = existing_history
-    else:
-        # Move saved meal to history
-        saved_meal.status = 'HISTORY'
-        if current_user:
-            saved_meal.user = current_user
-        saved_meal.save()
-
-        action = 'created'
-        history_meal = saved_meal
-
-    updated_history = _get_history_queryset(request)
-    metrics = _compute_metrics(updated_history)
-
-    meal_payload = {
-        'id': history_meal.id,
-        'recipe_name': history_meal.recipe_name,
-        'ingredients': history_meal.ingredients or '-',
-        'portions': history_meal.portions_saved,
-        'notes': history_meal.notes or '-',
-    }
-
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
-        return JsonResponse({
-            'success': True,
-            'action': action,
-            'history_meal_id': history_meal.id,
-            'new_portions': history_meal.portions_saved,
-            'meal': meal_payload,
-            'metrics': metrics,
-        })
-
-    return redirect('saved_meals:show_saved_meals')
-
-@require_POST
-def edit_history_note(request, meal_id):
-    """Update notes for a history meal entry."""
-    history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY')
-
-    # Parse notes from form-encoded POST or JSON
-    notes = ''
-    if request.content_type == 'application/json':
-        try:
-            body = json.loads(request.body)
-            notes = body.get('notes', '')
-        except Exception:
-            pass
-    else:
-        notes = request.POST.get('notes', '')
-
-    history_meal.notes = notes.strip()
-    history_meal.save()
+    saved_meals = _get_meals(request, 'SAVED')
+    history_meals = _get_meals(request, 'HISTORY')
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
 
     return JsonResponse({
         'success': True,
-        'meal_id': history_meal.id,
-        'notes': history_meal.notes,
+        'saved_meals': [m.to_dict() for m in saved_meals],
+        'history_meals': [m.to_dict() for m in history_meals],
+        'metrics': metrics,
     })
 
+
+@login_required
 @require_POST
-def delete_history_meal(request, meal_id):
-    """Delete a history record."""
-    history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY')
-    history_meal.delete()
+def add_saved_meal(request):
+    form = SavedMealForm(request.POST)
+    if form.is_valid():
+        meal = form.save(commit=False)
+        meal.user = request.user
+        meal.status = 'SAVED'
+        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        meal.save()
+        return JsonResponse({'success': True, 'meal': meal.to_dict()}, status=201)
 
-    updated_history = _get_history_queryset(request)
-    metrics = _compute_metrics(updated_history)
+    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
+
+@login_required
+@require_POST
+def mark_meal_done(request, meal_id):
+    saved_meal = get_object_or_404(SavedMeal, id=meal_id, status='SAVED', user=request.user)
+    existing = SavedMeal.objects.filter(
+        status='HISTORY',
+        user=request.user,
+        recipe_name__iexact=saved_meal.recipe_name,
+    ).first()
+
+    if existing:
+        existing.portions_saved += saved_meal.portions_saved
+        existing.ingredients_saved_kg = round(existing.ingredients_saved_kg + saved_meal.ingredients_saved_kg, 1)
+        existing.protein_grams += saved_meal.protein_grams
+        existing.calories_kcal += saved_meal.calories_kcal
+        existing.save()
+        saved_meal.delete()
+        history_meal = existing
+    else:
+        saved_meal.status = 'HISTORY'
+        saved_meal.save()
+        history_meal = saved_meal
+
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+    return JsonResponse({
+        'success': True,
+        'meal': history_meal.to_dict(),
+        'metrics': metrics,
+    })
+
+
+@login_required
+@require_POST
+def edit_history_note(request, meal_id):
+    history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY', user=request.user)
+    form = HistoryNoteForm(request.POST, instance=history_meal)
+
+    if form.is_valid():
+        meal = form.save(commit=False)
+        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        meal.save()
+        metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+        return JsonResponse({
+            'success': True,
+            'meal_id': meal.id,
+            'notes': meal.notes,
+            'portions_saved': meal.portions_saved,
+            'metrics': metrics,
+        })
+
+    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+
+@login_required
+@require_POST
+def delete_meal(request, meal_id):
+    meal = get_object_or_404(SavedMeal, id=meal_id, user=request.user)
+    meal.delete()
+
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
     return JsonResponse({
         'success': True,
         'meal_id': meal_id,
         'metrics': metrics,
     })
-
-def save_recipe(request, recipe_id):
-    """Add a recipe from Spoonacular catalog to user's saved meals."""
-    recipe_data = get_recipe_by_id(recipe_id)
-    if not recipe_data:
-        messages.error(request, 'Resep tidak ditemukan.')
-        return redirect('saved_meals:show_saved_meals')
-
-    user = request.user if request.user.is_authenticated else None
-
-    # Create new saved meal
-    SavedMeal.objects.create(
-        user=user,
-        recipe_id=recipe_data['id'],
-        recipe_name=recipe_data['title'],
-        image_url=recipe_data.get('image', ''),
-        cooking_time_minutes=recipe_data.get('readyInMinutes', 30),
-        portions_saved=recipe_data.get('servings', 1),
-        ingredients_saved_kg=recipe_data.get('ingredients_kg', 0.2),
-        protein_grams=recipe_data.get('protein', 10),
-        calories_kcal=recipe_data.get('calories', 300),
-        ingredients=recipe_data.get('ingredients', ''),
-        status='SAVED',
-    )
-
-    messages.success(request, f"Resep '{recipe_data['title']}' berhasil ditambahkan ke Saved Meals!")
-    return redirect('saved_meals:show_saved_meals')

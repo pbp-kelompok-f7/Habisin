@@ -6,24 +6,33 @@
 {% block content %}
 <main class="flex flex-col justify-center items-center gap-8">
   <section class="flex flex-col justify-center items-center gap-8 w-full">
-    <div class="flex flex-row items-start gap-8 w-full">
-      <div class="shrink-0 w-96 h-96 aspect-square overflow-hidden bg-brand-green rounded-xl">
-        <img src="{{ recipe.image }}" alt="{{ recipe.name }}" class="w-full h-full object-cover">
+    <div class="flex flex-row gap-8">
+      <div class="w-full aspect-square bg-brand-green rounded-xl">
+        <!-- Image placeholder-->
+        Gambar Resep
       </div>
-      <div class="flex flex-col items-start gap-4 w-full">
-        <h1>{{ recipe.name }}</h1>
+      <div class="flex flex-col items-start gap-4">
+        <h1>Title Resep Lorem Ipsum Lorem Ipsum Lorem Ipsum</h1>
         <span>6/7 bahan sudah ada di kulkasmu</span>
-        <div class="flex flex-row gap-4 w-full">
-          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+        <div class="flex flex-row justify-between gap-4 w-full">
+          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl">
             <span class="font-bold">Sudah kamu punya</span>
             <div class="flex flex-row flex-wrap gap-2 w-full">
-              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
             </div>
           </div>
-          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl">
             <span class="font-bold">Bahan yang kurang</span>
             <div class="flex flex-row flex-wrap gap-2 w-full">
-              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
             </div>
           </div>
         </div>
@@ -32,22 +41,12 @@
     <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
       <h2>Bahan</h2>
       <div class="flex flex-row flex-wrap gap-2 w-full">
-        {% for item in recipe.ingredient_measures %}
-        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">{{ item.name }}{% if item.measure %} • {{ item.measure }}{% endif %}</p>
-        {% endfor %}
+        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+        <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
       </div>
-    </div>
-    <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
-      <h2>Cara Membuat</h2>
-      {% if recipe.instructions %}
-      <ol class="list-decimal pl-6 flex flex-col gap-2">
-        {% for step in recipe.instructions %}
-        <li>{{ step }}</li>
-        {% endfor %}
-      </ol>
-      {% else %}
-      <p>Instruksi belum tersedia.</p>
-      {% endif %}
     </div>
   </section>
   {% include 'comments/_section.html' %}
