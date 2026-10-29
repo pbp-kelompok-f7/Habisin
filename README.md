@@ -10,7 +10,7 @@ Pengguna cukup memasukkan data sisa bahan makanan di kulkas mereka, lalu sistem 
 yang relevan. Website ini memberikan manfaat bagi pengguna untuk menghemat pengeluaran sekaligus mengurangi limbah
 makanan yang mereka hasilkan.
 
-Platform ini mengintegrasikan Spoonacular API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide
+Platform ini mengintegrasikan TheMealDB API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide
 masakan, tetapi juga dapat mengelola _fridge inventory_ mereka, menyimpan resep, melacak porsi makanan yang
 terselamatkan, hingga saling berbagi _review_ antarpengguna.
 
@@ -28,9 +28,9 @@ Bertanggung jawab atas keamanan akses pengguna (registrasi dan login) serta peng
 preferensi personal mereka. Selain itu, juga mengelola ketersediaan bahan makanan sisa yang dimiliki pengguna di rumah
 untuk nantinya digunakan sebagai input pencarian.
 
-- Meals Planner (Umar Faiz Rahman)
+- Community / Personal Reviews (Amelinda Fedora Faragusti)
 
-Membantu pengguna merencanakan makanan sehari-hari berdasarkan resep yang sudah disimpan.
+Section yang memfasilitasi pengguna untuk menilai resep masakan yang sudah mereka coba buat.
 
 - Recipe Discovery & Bookmarks (Risyad Athaya Muhammad)
 
@@ -42,15 +42,15 @@ dapat menambahkan resep ke beberapa list kategori (_bookmarks_), seperti _favour
 Melihat porsi makanan yang terselamatkan serta masakan yang sudah berhasil dieksekusi sebelumnya. Daftar riwayat bisa
 diubah dan dihapus oleh pengguna.
 
-- Landing Page & Community / Personal Reviews (Amelinda Fedora Faragusti)
+- Landing Page & Meals Planner (Umar Faiz Rahman)
 
-Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman yang memfasilitasi pengguna untuk menilai resep
-masakan yang sudah mereka coba buat.
+Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman lain yang membantu pengguna merencanakan makanan
+sehari-hari berdasarkan resep yang sudah disimpan.
 
 ## Public API
-Public API yang kami gunakan: Spoonacular API.
+Public API yang kami gunakan: TheMealDB API.
 
-Untuk dokumentasinya dapat dilihat melalui link berikut: https://spoonacular.com/food-api/docs.
+Untuk dokumentasinya dapat dilihat melalui link berikut: https://www.themealdb.com/documentation.
 
 ## Jenis Pengguna
 - Belum Login: Dapat melihat landing page, melihat resep (jumlah resep yang bisa dilihat dibatasi), dan share resep.
