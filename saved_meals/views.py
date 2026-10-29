@@ -11,10 +11,7 @@ from .spoonacular import get_recipe_by_id, seed_default_meals_if_empty
 
 
 def _get_meals(request, status, apply_filter=True):
-    if request.user.is_authenticated:
-        qs = SavedMeal.objects.filter(status=status, user=request.user)
-    else:
-        qs = SavedMeal.objects.filter(status=status, user__isnull=True)
+    qs = SavedMeal.objects.filter(status=status, user=request.user)
 
     if not apply_filter:
         return qs.order_by('-updated_at', '-id')
@@ -63,6 +60,7 @@ def _compute_metrics(history_qs):
     }
 
 
+@login_required
 @ensure_csrf_cookie
 def show_saved_meals(request):
     seed_default_meals_if_empty(request.user)
@@ -84,10 +82,10 @@ def show_saved_meals(request):
     return render(request, 'saved_meals/index.html', context)
 
 
+@login_required
 @require_GET
 def saved_meals_json(request):
     seed_default_meals_if_empty(request.user)
-    is_auth = request.user.is_authenticated
 
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
@@ -95,17 +93,15 @@ def saved_meals_json(request):
 
     return JsonResponse({
         'success': True,
-        'saved_meals': [m.to_dict(include_private=is_auth) for m in saved_meals],
-        'history_meals': [m.to_dict(include_private=is_auth) for m in history_meals],
+        'saved_meals': [m.to_dict() for m in saved_meals],
+        'history_meals': [m.to_dict() for m in history_meals],
         'metrics': metrics,
     })
 
 
+@login_required
 @require_POST
 def add_saved_meal(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'error': 'Login terlebih dahulu.'}, status=403)
-
     form = SavedMealForm(request.POST)
     if form.is_valid():
         meal = form.save(commit=False)
@@ -118,11 +114,9 @@ def add_saved_meal(request):
     return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
 
+@login_required
 @require_POST
 def mark_meal_done(request, meal_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'error': 'Login terlebih dahulu.'}, status=403)
-
     saved_meal = get_object_or_404(SavedMeal, id=meal_id, status='SAVED', user=request.user)
     existing = SavedMeal.objects.filter(
         status='HISTORY',
@@ -151,11 +145,9 @@ def mark_meal_done(request, meal_id):
     })
 
 
+@login_required
 @require_POST
 def edit_history_note(request, meal_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'error': 'Login terlebih dahulu.'}, status=403)
-
     history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY', user=request.user)
     form = HistoryNoteForm(request.POST, instance=history_meal)
 
@@ -175,11 +167,9 @@ def edit_history_note(request, meal_id):
     return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
 
+@login_required
 @require_POST
 def delete_meal(request, meal_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'error': 'Login terlebih dahulu.'}, status=403)
-
     meal = get_object_or_404(SavedMeal, id=meal_id, user=request.user)
     meal.delete()
 
