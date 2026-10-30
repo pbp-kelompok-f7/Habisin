@@ -4,6 +4,7 @@
 {% block title %}Discovery - Habisin{% endblock %}
 {% block meta %}
 <script defer src="{% static 'discovery/js/discovery.js' %}"></script>
+<script defer src="{% static 'discovery/js/bookmark_dialog.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -50,5 +51,7 @@
     <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Halaman resep" hidden></nav>
     <template id="recipe-card-template">{% include "discovery/components/recipe_card.html" %}</template>
   </section>
+
+  {% include "discovery/components/bookmark_dialog.html" %}
 </main>
 {% endblock %}

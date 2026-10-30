@@ -1,50 +1,126 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Favourites - Habisin{% endblock %}
+{% block title %}Bookmarks - Habisin{% endblock %}
+{% block meta %}
+<script defer src="{% static 'bookmarks/js/bookmarks.js' %}"></script>
+{% endblock %}
 
 {% block content %}
-<main class="site-container flex flex-col text-left">
+<main id="bookmarks-page"
+      class="site-container flex flex-col text-left"
+      data-csrf="{{ csrf_token }}"
+      data-selected-category="{{ selected_category.id }}"
+      data-default-category="{{ default_category.id }}"
+      data-create-url="{% url 'bookmarks:category_create' %}"
+      data-rename-url="{% url 'bookmarks:category_rename' 0 %}"
+      data-delete-url="{% url 'bookmarks:category_delete' 0 %}"
+      data-remove-recipe-url="{% url 'bookmarks:category_recipe_delete' 0 1 %}"
+      data-recipes-url="{% url 'bookmarks:category_recipes' 0 %}"
+      data-detail-url="{% url 'discovery:show_recipe_detail' 0 %}">
   <h1 class="md:text-900 text-left">Bookmarks</h1>
-  <div class="flex flex-row justify-between items-start w-full mb-8">
-    <span>Resep yang kamu simpan.</span>
-    <form class="flex flex-row gap-2">
-      <input type="search"
-             name="recipe"
-             placeholder="Cari bahan atau resep"
-             aria-label="Cari bahan atau resep"
-             class="w-[23ch] rounded-xl p-3 bg-background-white">
-      <!--  value="{{ title_query }}"-->
-      <button class="rounded-xl px-4 py-3 bg-brand-green text-background font-bold" type="submit">Cari</button>
-    </form>
-  </div>
-  <section class="flex flex-col w-full gap-4">
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4 w-full">
-      {% for i in placeholder_range %}
-      <a href="https://youtube.com/" class="block h-full">
-        <article class="flex flex-col items-center gap-2 h-full border-2 border-border-color rounded-xl bg-background-white">
-          <div class="w-full aspect-video bg-brand-green rounded-t-xl">
-            <!-- Image placeholder-->
-          </div>
-          <div class="flex flex-col px-4 pb-4 gap-2 w-full">
-            <div class="flex flex-col items-start w-full">
-              <h3 class="text-500">Resep 1</h3>
-              <span>Semua bahan ada di kulkas / Kurang: daun bawang</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 pt-2 mt-auto">
-              <div class="flex gap-3.5 text-200 text-muted">
-                <span class="inline-flex items-center gap-1.5">
-                  <svg class="h-[15px] w-[15px]" viewBox="0 0 64 64" enable-background="new 0 0 64 64" id="Layer_1" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M19,5c-0.552,0-1,0.448-1,1v5c0,0.552,0.448,1,1,1s1-0.448,1-1V6C20,5.448,19.552,5,19,5z" fill="#231F20"></path> <g> <path d="M45,19.135V15c0-0.552-0.448-1-1-1s-1,0.448-1,1v4.135c0,0.552,0.448,1,1,1S45,19.687,45,19.135" fill="#231F20"></path> </g> <g> <path d="M28,17c0-0.713,0-1.392,0-1.941c-0.006-2.19-1.809-3.939-4-3.941H14c-2.191,0.002-3.994,1.751-4,3.941 c0,0.55,0,1.229,0,1.941H28z" fill="#231F20"></path> <path d="M7.551,19C7.206,19.588,7.001,20.268,7,21v34c0.004,2.207,1.793,3.996,4,4h16c2.207-0.004,3.996-1.793,4-4 V21c-0.001-0.732-0.206-1.412-0.551-2H7.551z M13,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V22c0-0.552,0.448-1,1-1s1,0.448,1,1V54z" fill="#231F20"></path> </g> <g> <path d="M52,24c0-0.571,0-1.094,0-1.509c0-1.016-0.519-1.906-1.251-2.495c-0.736-0.595-1.702-0.937-2.749-0.938h-8 c-1.046,0.001-2.012,0.343-2.749,0.938C36.519,20.585,36,21.475,36,22.491c0,0.415,0,0.938,0,1.509H52z" fill="#231F20"></path> <path d="M34.509,26c-0.32,0.569-0.508,1.223-0.509,1.923V55c0.004,2.207,1.793,3.996,4,4h12 c2.207-0.004,3.996-1.793,4-4V27.923c-0.001-0.701-0.189-1.354-0.509-1.923H34.509z M40,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V29 c0-0.552,0.448-1,1-1s1,0.448,1,1V54z" fill="#231F20"></path> </g> </g></svg>
-                  5 bahan
-                </span>
-              </div>
-            </div>
-          </div>
-        </article>
+  <span class="mb-8">Resep yang kamu simpan, dikelompokkan sesuai kategorimu.</span>
+  <div class="flex flex-col md:flex-row md:items-start gap-6 w-full">
+    <aside class="hidden md:flex md:sticky md:top-8 w-72 shrink-0 flex-col gap-4 p-6 rounded-xl bg-background-white border-2 border-border-color" aria-labelledby="category-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="category-heading" class="text-300">Kategori</h2>
+        <button type="button"
+                commandfor="create-category-dialog"
+                command="show-modal"
+                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 bg-brand-green text-background font-bold transition hover:opacity-90 cursor-pointer">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Baru
+        </button>
+      </div>
+      <ul class="flex flex-col gap-1">
+        {% for category in categories %}
+          {% include "bookmarks/components/category_item.html" %}
+        {% endfor %}
+      </ul>
+    </aside>
+    <nav class="md:hidden flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" aria-label="Kategori">
+      {% for category in categories %}
+      <a href="?category={{ category.id }}"
+         class="shrink-0 rounded-full px-4 py-2 border-2 border-brand-green bg-background-white font-bold whitespace-nowrap transition-colors aria-[current=page]:bg-brand-green aria-[current=page]:text-background"
+         {% if category.id == selected_category.id %}aria-current="page"{% endif %}>
+        {{ category.name }} <span class="font-normal opacity-70" data-count-for="{{ category.id }}">{{ category.recipe_count }}</span>
       </a>
       {% endfor %}
-    </div>
-    <span>1 2 3 ... 8</span>
-  </section>
+      <button type="button"
+              commandfor="create-category-dialog"
+              command="show-modal"
+              aria-label="Kategori baru"
+              class="shrink-0 grid place-items-center h-11 w-11 rounded-full border-2 border-dashed border-brand-green cursor-pointer">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </nav>
+    <section id="recipe-section" class="flex flex-col flex-1 min-w-0 gap-4" aria-labelledby="selected-category-heading">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="min-w-0">
+            <h2 id="selected-category-heading" class="text-300 md:text-500 truncate">{{ selected_category.name }}</h2>
+            <span class="text-muted"><span data-count-for="{{ selected_category.id }}">{{ selected_category.recipe_count }}</span> resep tersimpan</span>
+          </div>
+          {% if not selected_category.is_default %}
+          <div class="md:hidden flex gap-1 ml-auto shrink-0">
+            <button type="button" aria-label="Ganti nama {{ selected_category.name }}" commandfor="rename-category-dialog" command="show-modal"
+                    data-rename-category="{{ selected_category.id }}" data-category-name="{{ selected_category.name }}"
+                    class="grid h-10 w-10 place-items-center rounded-full border-2 border-border-color bg-background-white cursor-pointer">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+            </button>
+            <button type="button" aria-label="Hapus {{ selected_category.name }}" commandfor="delete-category-dialog" command="show-modal"
+                    data-delete-category="{{ selected_category.id }}" data-category-name="{{ selected_category.name }}"
+                    class="grid h-10 w-10 place-items-center rounded-full border-2 border-border-color bg-background-white transition-colors hover:bg-brand-red hover:border-brand-red hover:text-background cursor-pointer">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+            </button>
+          </div>
+          {% endif %}
+        </div>
+        <form id="bookmark-search" class="relative flex flex-row" role="search">
+          <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search"
+                 name="recipe"
+                 placeholder="Cari di {{ selected_category.name }}"
+                 aria-label="Cari bahan atau resep di {{ selected_category.name }}"
+                 autocomplete="off"
+                 {% if not selected_category.recipe_count %}disabled{% endif %}
+                 class="w-full lg:w-[28ch] rounded-xl p-3 pl-10 bg-background-white disabled:opacity-60 disabled:cursor-not-allowed">
+        </form>
+      </div>
+      <p id="recipe-status" class="text-muted" aria-live="polite" hidden></p>
+      {% if selected_category.recipe_count %}
+      <div id="recipe-grid" class="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4 w-full">
+        {% for recipe in recipes %}
+          {% include "discovery/components/recipe_card.html" with removable=True %}
+        {% endfor %}
+      </div>
+      {# Kelasnya sama dengan PAGE_BUTTON_CLASS / CURRENT_PAGE_CLASS di bookmarks.js #}
+      <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Halaman resep"{% if num_pages <= 1 %} hidden{% endif %}>
+        <button type="button" aria-label="Halaman sebelumnya" data-page="{{ page|add:"-1" }}"{% if not has_previous %} disabled{% endif %}
+                class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer{% if not has_previous %} opacity-40 cursor-not-allowed{% endif %}">‹</button>
+        {% for number in page_range %}
+          {% if number is None %}
+          <span class="px-2">…</span>
+          {% elif number == page %}
+          <button type="button" aria-current="page" class="rounded-xl px-4 py-3 border-2 border-brand-green bg-brand-green text-background font-bold">{{ number }}</button>
+          {% else %}
+          <button type="button" data-page="{{ number }}" class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer">{{ number }}</button>
+          {% endif %}
+        {% endfor %}
+        <button type="button" aria-label="Halaman berikutnya" data-page="{{ page|add:"1" }}"{% if not has_next %} disabled{% endif %}
+                class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer{% if not has_next %} opacity-40 cursor-not-allowed{% endif %}">›</button>
+      </nav>
+      <template id="recipe-card-template">{% include "discovery/components/recipe_card.html" with removable=True recipe=None %}</template>
+      {% else %}
+      <div class="flex flex-col items-center gap-3 px-6 py-16 rounded-xl border-2 border-dashed border-border-color text-center">
+        <svg class="h-12 w-12 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+        <h3>Belum ada resep di sini</h3>
+        <p class="text-muted max-w-[40ch]">Simpan resep ke kategori ini dari halaman Temukan Resep atau detail resep.</p>
+        <a href="{% url 'discovery:show_discovery' %}" class="mt-2 rounded-xl px-4 py-3 bg-brand-green text-background font-bold transition hover:opacity-90">Temukan Resep</a>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+  {% include "bookmarks/components/category_dialogs.html" %}
 </main>
 {% endblock %}
