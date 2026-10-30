@@ -12,25 +12,57 @@
       </div>
       <div class="flex flex-col items-start gap-4 w-full">
         <h1>{{ recipe.name }}</h1>
-        <span>6/7 bahan sudah ada di kulkasmu</span>
-        <div class="flex flex-row gap-4 w-full">
-          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
-            <span class="font-bold">Sudah kamu punya</span>
-            <div class="flex flex-row flex-wrap gap-2 w-full">
-              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2</p>
+        {% if fridge %}
+          <div class="flex flex-col gap-3 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+            <div class="flex flex-row items-center gap-3">
+              <span class="text-600 font-bold leading-none {% if fridge.complete %}text-brand-green{% endif %}">{{ fridge.available_count }}/{{ fridge.total }}</span>
+              <div class="flex flex-col">
+                <span class="font-bold">ingredients are available in your fridge</span>
+                {% if fridge.complete %}
+                  <span class="text-200 text-brand-green">Ready to cook!</span>
+                {% else %}
+                  <span class="text-200 text-muted">{{ fridge.missing|length }} more to get</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="h-3 w-full rounded-full bg-border-color overflow-hidden"
+                 role="progressbar" aria-valuemin="0" aria-valuemax="{{ fridge.total }}" aria-valuenow="{{ fridge.available_count }}"
+                 aria-label="Ingredients available in your fridge">
+              <div class="h-full rounded-full bg-brand-green" style="width: {{ fridge.percent }}%"></div>
             </div>
           </div>
-          <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
-            <span class="font-bold">Bahan yang kurang</span>
-            <div class="flex flex-row flex-wrap gap-2 w-full">
-              <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2</p>
+          <div class="flex flex-row gap-4 w-full">
+            <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+              <span class="font-bold">Available Ingredients</span>
+              <div class="flex flex-row flex-wrap gap-2 w-full">
+                {% for name in fridge.available %}
+                  <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">{{ name }}</p>
+                {% empty %}
+                  <p class="text-muted">None of these are in your fridge yet.</p>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+              <span class="font-bold">Missing Ingredients</span>
+              <div class="flex flex-row flex-wrap gap-2 w-full">
+                {% for name in fridge.missing %}
+                  <p class="rounded-full px-4 py-3 border-brand-red border-2 bg-background-white">{{ name }}</p>
+                {% empty %}
+                  <p class="text-muted">Nothing missing — you have everything!</p>
+                {% endfor %}
+              </div>
             </div>
           </div>
-        </div>
+        {% else %}
+          <p class="p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
+            <a class="font-bold underline" href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}">Log in</a>
+            to compare this recipe with your fridge.
+          </p>
+        {% endif %}
       </div>
     </div>
     <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
-      <h2>Bahan</h2>
+      <h2>Ingredients</h2>
       <div class="flex flex-row flex-wrap gap-2 w-full">
         {% for item in recipe.ingredient_measures %}
         <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">{{ item.name }}{% if item.measure %} • {{ item.measure }}{% endif %}</p>
@@ -38,7 +70,7 @@
       </div>
     </div>
     <div class="flex flex-col items-start gap-2 p-4 bg-background-white border-2 border-border-color rounded-xl w-full">
-      <h2>Cara Membuat</h2>
+      <h2>Instructions</h2>
       {% if recipe.instructions %}
       <ol class="list-decimal pl-6 flex flex-col gap-2">
         {% for step in recipe.instructions %}

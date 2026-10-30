@@ -114,3 +114,37 @@ class ShowDiscoveryTests(TestCase):
         self.assertContains(response, f'href="{reverse("authentication:register")}"')
         self.assertNotContains(response, 'id="recipe-search"')
         self.assertNotContains(response, 'id="fridge-ingredients"')
+
+
+class RecipeDetailTests(TestCase):
+    def setUp(self):
+        stew = meal("52772", "Stew") | {
+            "strIngredient1": "Chicken Breast",
+            "strIngredient2": "Rice",
+            "strIngredient3": "rice",
+            "strIngredient4": "Salt",
+        }
+        self.fetch = lambda endpoint, **params: {"meals": [stew]} if endpoint == "lookup.php" else {}
+
+    def get_detail(self):
+        with patch("discovery.views._fetch_json", side_effect=self.fetch):
+            return self.client.get(reverse("discovery:show_recipe_detail", args=[52772]))
+
+    def test_compares_recipe_with_fridge(self):
+        user = get_user_model().objects.create_user(username="budi", password="rahasia123")
+        InventoryItem.objects.create(user=user, name="Chicken", amount=1)
+        InventoryItem.objects.create(user=user, name="Salt", amount=1)
+        self.client.force_login(user)
+
+        response = self.get_detail()
+
+        fridge = response.context["fridge"]
+        self.assertEqual(fridge["available"], ["Chicken Breast", "Salt"])
+        self.assertEqual(fridge["missing"], ["Rice"])
+        self.assertContains(response, "2/3")
+        self.assertContains(response, "Missing Ingredients")
+
+    def test_guest_sees_login_prompt(self):
+        response = self.get_detail()
+        self.assertIsNone(response.context["fridge"])
+        self.assertContains(response, "to compare this recipe with your fridge")

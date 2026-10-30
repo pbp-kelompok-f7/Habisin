@@ -150,6 +150,25 @@ def _fridge_ingredients(user):
     return sorted(names.values(), key=str.casefold)
 
 
+def _fridge_comparison(ingredients, user):
+    # MealDB kadang menulis bahan yang sama dua kali, jadi hilangkan duplikat agar hitungannya tidak menggelembung
+    unique, seen = [], set()
+    for ingredient in ingredients:
+        if ingredient.casefold() not in seen:
+            seen.add(ingredient.casefold())
+            unique.append(ingredient)
+    missing = _missing_ingredients(unique, _fridge_ingredients(user))
+    available = [i for i in unique if i not in missing]
+    return {
+        "available": available,
+        "missing": missing,
+        "available_count": len(available),
+        "total": len(unique),
+        "complete": not missing,
+        "percent": round(100 * len(available) / len(unique)) if unique else 0,
+    }
+
+
 def show_discovery(request):
     if not request.user.is_authenticated:
         return render(request, "discovery/limited.html", {"recipes": _preview_recipes()})
@@ -172,6 +191,7 @@ def show_recipe_detail(request, recipe_id):
     ingredients = [_capitalize_words(i) for i in _extract_ingredients(meal)]
     context = {
         "recipe_id": recipe_id,
+        "fridge": _fridge_comparison(ingredients, request.user) if request.user.is_authenticated else None,
         "recipe": {
             "id": meal["idMeal"],
             "name": _capitalize_words(meal["strMeal"]),
