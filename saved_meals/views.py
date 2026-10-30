@@ -9,6 +9,12 @@ from .models import SavedMeal
 from .forms import SavedMealForm, HistoryNoteForm
 from .openfoodfacts import estimate_meal_nutrition, scale_nutrition
 
+LEGACY_SEED_RECIPE_IDS = (101, 102, 103, 104, 105)
+
+
+def _purge_legacy_seeds(user):
+    SavedMeal.objects.filter(user=user, recipe_id__in=LEGACY_SEED_RECIPE_IDS).delete()
+
 
 def _get_meals(request, status, apply_filter=True):
     qs = SavedMeal.objects.filter(status=status, user=request.user)
@@ -64,6 +70,7 @@ def _compute_metrics(history_qs):
 @login_required
 @ensure_csrf_cookie
 def show_saved_meals(request):
+    _purge_legacy_seeds(request.user)
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
     metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
@@ -83,6 +90,7 @@ def show_saved_meals(request):
 @login_required
 @require_GET
 def saved_meals_json(request):
+    _purge_legacy_seeds(request.user)
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
     metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
@@ -93,51 +101,6 @@ def saved_meals_json(request):
         'history_meals': [m.to_dict() for m in history_meals],
         'metrics': metrics,
     })
-
-
-@login_required
-def save_recipe(request, recipe_id):
-    meal_data = _lookup_meal(recipe_id)
-    if meal_data:
-        recipe_name = _capitalize_words(meal_data.get('strMeal') or 'Resep Pilihan')
-        image_url = meal_data.get('strMealThumb') or ''
-        ingredients_list = [_capitalize_words(i) for i in _extract_ingredients(meal_data)]
-        ingredients_str = ', '.join(ingredients_list)
-    else:
-        recipe_name = request.POST.get('recipe_name') or f'Resep #{recipe_id}'
-        image_url = request.POST.get('image_url') or ''
-        ingredients_str = request.POST.get('ingredients') or ''
-
-    nutrition = estimate_meal_nutrition(ingredients_str, portions=1)
-
-    existing = SavedMeal.objects.filter(
-        user=request.user,
-        status='SAVED',
-        recipe_id=recipe_id,
-    ).first()
-
-    if existing:
-        existing.portions_saved += 1
-        existing.ingredients_saved_kg = round(existing.portions_saved * 0.2, 1)
-        existing.calories_kcal += nutrition['calories_kcal']
-        existing.protein_grams += nutrition['protein_grams']
-        existing.save()
-    else:
-        SavedMeal.objects.create(
-            user=request.user,
-            recipe_id=recipe_id,
-            recipe_name=recipe_name,
-            image_url=image_url,
-            cooking_time_minutes=30,
-            portions_saved=1,
-            ingredients_saved_kg=0.2,
-            calories_kcal=nutrition['calories_kcal'],
-            protein_grams=nutrition['protein_grams'],
-            ingredients=ingredients_str,
-            status='SAVED',
-        )
-
-    return redirect('saved_meals:show_saved_meals')
 
 
 @login_required
@@ -177,13 +140,17 @@ def add_recipe_to_saved_meals(request, recipe_id):
     if not meal:
         return JsonResponse({'success': False, 'error': 'Resep tidak ditemukan.'}, status=404)
 
-    # MealDB tidak menyediakan waktu masak, kalori, dll., jadi field lainnya memakai nilai default model
+    ingredients = ', '.join(_capitalize_words(i) for i in _extract_ingredients(meal))
+    nutrition = estimate_meal_nutrition(ingredients, portions=1)
+
     saved_meal = SavedMeal.objects.create(
         user=request.user,
         recipe_id=recipe_id,
         recipe_name=_capitalize_words(meal['strMeal']),
         image_url=meal['strMealThumb'],
-        ingredients=', '.join(_capitalize_words(i) for i in _extract_ingredients(meal)),
+        ingredients=ingredients,
+        calories_kcal=nutrition['calories_kcal'],
+        protein_grams=nutrition['protein_grams'],
         status='SAVED',
     )
     return JsonResponse({'success': True, 'created': True, 'meal': saved_meal.to_dict()}, status=201)
