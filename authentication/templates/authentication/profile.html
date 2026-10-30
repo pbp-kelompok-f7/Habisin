@@ -7,8 +7,10 @@
 {% block navbar %}
 <header class="border-b border-border-color">
   <div class="max-w-[1200px] mx-auto px-4 md:px-0 h-[90px] flex items-center justify-between">
-    <a href="{% url 'home:show_home' %}">
-      <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-14">
+    <a href="{% url 'home:show_home' %}" class="flex items-center gap-2 flex-shrink-0 font-heading font-extrabold"
+       style="font-size:22px;line-height:32px;letter-spacing:-.02em;color:#0f3b2e;">
+      <img src="{% static 'home/img/LOGO.svg' %}" alt="" class="h-8 w-auto" />
+      Habisin
     </a>
     <div class="flex items-center gap-4">
         <form method="post" action="{% url 'authentication:logout' %}">
