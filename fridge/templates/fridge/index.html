@@ -4,52 +4,133 @@
 {% block title %}Kulkas | Habisin{% endblock %}
 
 {% block content %}
-<main class="text-brand-green-dark pb-54">
+<main id="fridge" class="text-brand-green-dark pb-24 min-h-[calc(100vh-4rem)]"
+      data-tab="{{ tab }}"
+      data-q="{{ q }}"
+      data-list-url="{% url 'fridge:item_list' %}"
+      data-create-url="{% url 'fridge:item_create' %}"
+      data-update-url="{% url 'fridge:item_update' 0 %}"
+      data-delete-url="{% url 'fridge:item_delete' 0 %}"
+      data-login-url="{% url 'authentication:login' %}"
+      data-csrf="{{ csrf_token }}">
 
   <!-- Judul, tab lokasi, pencarian -->
   <div class="flex flex-wrap items-center gap-6">
     <h1>Kulkas</h1>
 
-    <nav class="flex border border-border-color" aria-label="Lokasi penyimpanan">
+    <nav id="tabs" class="flex border border-border-color" aria-label="Lokasi penyimpanan">
       {% for key, label in tabs %}
-      <a href="?tab={{ key }}{% if q %}&q={{ q|urlencode }}{% endif %}"
-         class="px-6 py-3 text-xl font-bold transition-colors {% if key == tab %}bg-[#F6DDB6]{% else %}hover:bg-[#F6DDB6]/50{% endif %}"
+      <a href="?tab={{ key }}" data-tab="{{ key }}"
+         class="px-6 py-3 text-xl font-bold transition-colors hover:bg-[#F6DDB6]/50 aria-[current=page]:bg-[#F6DDB6] aria-[current=page]:hover:bg-[#F6DDB6]"
          {% if key == tab %}aria-current="page"{% endif %}>{{ label }}</a>
       {% endfor %}
     </nav>
 
-    <form method="get" class="relative w-full md:w-72 md:ml-auto" role="search">
-      <input type="hidden" name="tab" value="{{ tab }}">
+    <form id="search-form" method="get" class="relative w-full md:w-72 md:ml-auto" role="search">
       <svg class="absolute left-4 top-1/2 -translate-y-1/2 size-6 text-brand-green-dark pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" name="q" value="{{ q }}" placeholder="Search" aria-label="Cari bahan"
+      <input type="search" id="search" name="q" value="{{ q }}" placeholder="Search" aria-label="Cari bahan" autocomplete="off"
              class="w-full h-12 pl-14 pr-4 rounded-full border-2 border-border-color bg-transparent text-lg placeholder-gray-400 focus-visible:outline-none focus-visible:border-brand-green">
+      <input type="hidden" name="tab" value="{{ tab }}">
     </form>
+
+    <button type="button" id="add-top" data-open-add
+            class="inline-flex w-full md:w-auto items-center justify-center gap-2 h-12 px-6 rounded-full bg-brand-green text-white font-medium transition hover:opacity-90 cursor-pointer">
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Tambah bahan
+    </button>
   </div>
 
-  <!-- Daftar bahan -->
-  {% if items %}
-  <ul class="mt-12 grid md:grid-cols-2 gap-5">
-    {% for item in items %}
+  <!-- Daftar bahan (diisi oleh fridge.js) -->
+  <ul id="item-list" class="mt-12 grid md:grid-cols-2 gap-5 transition-opacity aria-busy:opacity-60" aria-busy="false"></ul>
+  <p id="empty" class="mt-16 text-center text-xl text-[#7C8C80]" hidden></p>
+  <button type="button" id="empty-add" data-open-add hidden
+          class="flex w-fit mx-auto mt-6 items-center gap-2 px-6 py-3 rounded-full border-2 border-border-color font-medium transition-colors hover:bg-[#F6DDB6] cursor-pointer">
+    Tambah bahan pertama
+  </button>
+  <p id="load-error" role="alert" class="mt-8 text-center text-[#9F2A1E]" hidden></p>
+  <noscript><p class="mt-16 text-center text-xl text-[#7C8C80]">Aktifkan JavaScript untuk melihat isi kulkas.</p></noscript>
+
+  <!-- Cetakan kartu bahan -->
+  <template id="item-template">
     <li class="flex items-center justify-between gap-4 rounded-3xl bg-white px-8 py-5 shadow-md">
-      <div>
-        <p class="text-base uppercase text-[#5F7568]">{{ item.amount }} {{ item.unit }}</p>
-        <p class="text-2xl font-bold text-brand-green">{{ item.name }}</p>
+      <div class="min-w-0">
+        <p data-amount class="text-base uppercase text-[#5F7568]"></p>
+        <p data-name class="truncate text-2xl font-bold text-brand-green"></p>
       </div>
-      <div class="flex items-center gap-4">
-        <button type="button" class="px-5 py-2 rounded-lg border-2 border-border-color text-base transition-colors hover:bg-[#F6DDB6] cursor-pointer">Update</button>
-        <button type="button" aria-label="Hapus {{ item.name }}"
+      <div class="flex shrink-0 items-center gap-4">
+        <button type="button" data-action="edit" class="px-5 py-2 rounded-lg border-2 border-border-color text-base transition-colors hover:bg-[#F6DDB6] cursor-pointer">Update</button>
+        <button type="button" data-action="delete"
                 class="grid place-items-center size-11 rounded-full border-2 border-border-color transition-colors hover:bg-[#E8532B] hover:border-[#E8532B] hover:text-white cursor-pointer">
           <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
       </div>
     </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p class="mt-16 text-center text-xl text-[#7C8C80]">
-    {% if q %}Tidak ada bahan "{{ q }}" di {{ tab_label }}.{% else %}Belum ada bahan di {{ tab_label }}.{% endif %}
-  </p>
-  {% endif %}
+  </template>
 
+  <!-- Dialog tambah / update -->
+  <dialog id="edit-dialog" aria-labelledby="edit-title"
+          class="m-auto w-[min(92vw,28rem)] rounded-3xl bg-white p-0 text-brand-green-dark shadow-md backdrop:bg-black/40">
+    <form id="edit-form" class="p-6" novalidate>
+      <h2 id="edit-title" class="text-2xl">Update bahan</h2>
+
+      <div class="mt-5">
+        <label for="edit-name" class="block mb-1 font-bold">Nama bahan</label>
+        <input id="edit-name" name="name" type="text" maxlength="80" autocomplete="off" class="w-full h-12 px-4 rounded-2xl border-2 border-border-color bg-transparent text-base text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+        <p data-error-for="name" class="mt-1 text-sm text-[#9F2A1E]" hidden></p>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <label for="edit-amount" class="block mb-1 font-bold">Jumlah</label>
+          <input id="edit-amount" name="amount" type="number" inputmode="decimal" min="0" step="any" class="w-full h-12 px-4 rounded-2xl border-2 border-border-color bg-transparent text-base text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+          <p data-error-for="amount" class="mt-1 text-sm text-[#9F2A1E]" hidden></p>
+        </div>
+        <div>
+          <label for="edit-unit" class="block mb-1 font-bold">Satuan</label>
+          <select id="edit-unit" name="unit" class="w-full h-12 px-4 rounded-2xl border-2 border-border-color bg-transparent text-base text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+            {% for value, label in units %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          </select>
+          <p data-error-for="unit" class="mt-1 text-sm text-[#9F2A1E]" hidden></p>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label for="edit-place" class="block mb-1 font-bold">Lokasi</label>
+        <select id="edit-place" name="place" class="w-full h-12 px-4 rounded-2xl border-2 border-border-color bg-transparent text-base text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30">
+          {% for key, label in tabs %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+        </select>
+        <p data-error-for="place" class="mt-1 text-sm text-[#9F2A1E]" hidden></p>
+      </div>
+
+      <p data-error-for="__all__" role="alert" class="mt-4 text-sm text-[#9F2A1E]" hidden></p>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" id="edit-cancel" class="px-5 py-2.5 rounded-xl border-2 border-border-color transition-colors hover:bg-[#F6DDB6] cursor-pointer">Batal</button>
+        <button type="submit" id="edit-save" class="px-5 py-2.5 rounded-xl bg-brand-green text-white font-medium hover:opacity-90 cursor-pointer">Simpan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Dialog konfirmasi hapus -->
+  <dialog id="delete-dialog" aria-labelledby="delete-title"
+          class="m-auto w-[min(92vw,26rem)] rounded-3xl bg-white p-0 text-brand-green-dark shadow-md backdrop:bg-black/40">
+    <div class="p-6">
+      <h2 id="delete-title" class="text-2xl">Hapus bahan?</h2>
+      <p class="mt-3"><strong id="delete-name"></strong> akan dihapus dari kulkasmu.</p>
+      <p id="delete-error" role="alert" class="mt-3 text-sm text-[#9F2A1E]" hidden></p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" id="delete-cancel" class="px-5 py-2.5 rounded-xl border-2 border-border-color transition-colors hover:bg-[#F6DDB6] cursor-pointer">Batal</button>
+        <button type="button" id="delete-confirm" class="px-5 py-2.5 rounded-xl bg-[#E8532B] text-white font-medium hover:opacity-90 cursor-pointer">Hapus</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Notifikasi singkat -->
+  <div id="toast" role="status" aria-live="polite" hidden
+       class="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-xl bg-brand-green-dark px-5 py-3 text-white shadow-md"></div>
+
+  {{ items|json_script:"initial-items" }}
 </main>
+
+<script src="{% static 'fridge/fridge.js' %}" defer></script>
 {% endblock content %}

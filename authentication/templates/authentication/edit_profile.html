@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile | Habisin{% endblock %}
+
+{% block content %}
+<main class="text-brand-green-dark pb-24 min-h-[calc(100vh-4rem)]">
+  <div class="mx-auto max-w-xl">
+    <h1>Edit Profile</h1>
+
+    <form method="post" enctype="multipart/form-data" novalidate
+          class="mt-8 rounded-3xl bg-white p-6 md:p-8 shadow-md">
+      {% csrf_token %}
+
+      <!-- Foto profil -->
+      <div class="flex items-center gap-6">
+        <div class="relative size-28 shrink-0 overflow-hidden rounded-full border-4 border-white bg-brand-green grid place-items-center shadow-sm">
+          <img id="preview-img" src="{% if profile and profile.photo %}{{ profile.photo.url }}{% endif %}" alt=""
+               class="absolute inset-0 w-full h-full object-cover" {% if not profile or not profile.photo %}hidden{% endif %}>
+          <span id="preview-initial" aria-hidden="true" class="text-5xl font-bold text-white select-none"
+                {% if profile and profile.photo %}hidden{% endif %}>{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+        </div>
+
+        <div class="min-w-0">
+          <label class="inline-flex items-center rounded-xl border-2 border-border-color px-5 py-2.5 font-medium transition-colors hover:bg-[#F6DDB6] cursor-pointer has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-green/30">
+            Choose photo
+            <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only">
+          </label>
+          <p class="mt-2 text-sm text-[#7C8C80]">JPG, PNG, or WEBP. Max 2 MB.</p>
+          <p id="photo-error" role="alert" class="mt-1 text-sm text-[#9F2A1E]" hidden></p>
+          {% for e in form.photo.errors %}<p class="mt-1 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
+
+          {% if profile and profile.photo %}
+          <label class="mt-3 flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" id="remove_photo" name="remove_photo" class="size-4">
+            Remove current photo
+          </label>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Nama -->
+      <div class="mt-8">
+        <label for="name" class="block mb-1.5 font-bold">Your name</label>
+        <input type="text" id="name" name="name" maxlength="60" autocomplete="name"
+               value="{{ form.name.value|default:'' }}"
+               class="w-full h-12 px-4 rounded-2xl border-2 bg-transparent text-base text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30 {% if form.name.errors %}border-red-400{% else %}border-border-color{% endif %}">
+        {% for e in form.name.errors %}<p class="mt-1 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="mt-8 flex justify-end gap-3">
+        <a href="{% url 'authentication:profile' %}" class="px-6 py-3 rounded-xl border-2 border-border-color font-medium transition-colors hover:bg-[#F6DDB6]">Cancel</a>
+        <button type="submit" class="px-6 py-3 rounded-xl bg-brand-green text-white font-medium hover:opacity-90 cursor-pointer">Save</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+  // Pratinjau foto sebelum disimpan
+  (function () {
+    var input = document.getElementById('photo');
+    var img = document.getElementById('preview-img');
+    var initial = document.getElementById('preview-initial');
+    var remove = document.getElementById('remove_photo');
+    var error = document.getElementById('photo-error');
+    var original = img.getAttribute('src');
+    var MAX = 2 * 1024 * 1024;
+    var blobUrl = null;
+
+    function showPhoto(show) {
+      img.hidden = !show;
+      initial.hidden = show;
+    }
+
+    input.addEventListener('change', function () {
+      var file = input.files[0];
+      error.hidden = true;
+      if (!file) return;
+      if (file.size > MAX) {
+        input.value = '';
+        error.textContent = 'Photo must be 2 MB or smaller.';
+        error.hidden = false;
+        return;
+      }
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(file);
+      img.src = blobUrl;
+      showPhoto(true);
+      if (remove) remove.checked = false;
+    });
+
+    if (remove) {
+      remove.addEventListener('change', function () {
+        if (remove.checked) {
+          input.value = '';
+          img.src = original;
+          showPhoto(false);
+        } else {
+          showPhoto(Boolean(original));
+        }
+      });
+    }
+  })();
+</script>
+{% endblock content %}

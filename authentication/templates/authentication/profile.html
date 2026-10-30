@@ -3,21 +3,18 @@
 
 {% block title %}Profile | Habisin{% endblock %}
 
-{# Header khusus halaman profile, tanpa footer #}
 {% block navbar %}
 <header class="border-b border-border-color">
   <div class="max-w-[1200px] mx-auto px-4 md:px-0 h-[90px] flex items-center justify-between">
-    <a href="{% url 'home:show_home' %}" class="flex items-center gap-2 flex-shrink-0 font-heading font-extrabold"
-       style="font-size:22px;line-height:32px;letter-spacing:-.02em;color:#0f3b2e;">
-      <img src="{% static 'home/img/LOGO.svg' %}" alt="" class="h-8 w-auto" />
-      Habisin
+    <a href="{% url 'discovery:show_discovery' %}" aria-label="Ke halaman Resep">
+      <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-14">
     </a>
     <div class="flex items-center gap-4">
         <form method="post" action="{% url 'authentication:logout' %}">
             {% csrf_token %}
             <button type="submit" class="px-5 py-2.5 rounded-xl border-2 border-border-color text-sm font-medium text-brand-green-dark hover:underline cursor-pointer">Logout</button>
         </form>
-      <a href="#" class="px-5 py-2.5 rounded-xl bg-brand-green text-white text-sm font-medium hover:opacity-90">Edit Profile</a>
+      <a href="{% url 'authentication:edit_profile' %}" class="px-5 py-2.5 rounded-xl bg-brand-green text-white text-sm font-medium hover:opacity-90">Edit Profile</a>
     </div>
   </div>
 </header>
@@ -27,35 +24,60 @@
 {% block content %}
 <div class="max-w-[1200px] mx-auto px-4 md:px-0 pb-12 text-brand-green-dark">
 
-  <!-- Banner -->
   <div class="h-44 md:h-[300px] bg-[#cdbfa6] overflow-hidden">
     <img src="{% static 'img/Banner.png' %}" alt="" class="w-full h-full object-cover" onerror="this.remove()">
   </div>
 
-  <!-- Avatar + nama -->
   <div class="px-4 md:px-9">
-    <div class="relative -mt-24 size-40 md:size-[200px] rounded-full border-4 border-white bg-[#cdbfa6] overflow-hidden">
-      <img src="{% static 'img/profilepict.png' %}" alt="{{ profile.name }}" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+    <div class="relative -mt-24 size-40 md:size-[200px] rounded-full border-4 border-white bg-brand-green overflow-hidden grid place-items-center">
+      {% if user.profile.photo %}
+      <img src="{{ user.profile.photo.url }}" alt="{{ profile.name }}" class="absolute inset-0 w-full h-full object-cover">
+      {% else %}
+      <span class="text-6xl md:text-7xl font-bold text-white select-none" aria-hidden="true">{{ profile.name|slice:":1"|upper }}</span>
+      {% endif %}
     </div>
     <p class="mt-3 text-3xl md:text-4xl font-bold text-brand-green">{{ profile.name }}</p>
     <p class="text-lg font-medium text-[#7C8C80]">@{{ profile.username }}</p>
   </div>
 
-  <!-- Statistik -->
   <div class="mt-14 grid md:grid-cols-[2fr_1fr] gap-5">
 
     <section class="rounded-xl bg-[#F6DDB6] p-6">
-      <p class="text-3xl font-bold text-brand-green">Activity</p>
-      <p class="text-lg font-medium text-[#7C8C80]">{{ activity_range }}</p>
+      <p class="text-3xl font-bold text-brand-green">Quick access</p>
+      <p class="text-lg font-medium text-[#7C8C80]">Jump back into your kitchen</p>
 
-      <div class="mt-4 flex items-end justify-between gap-2 h-[230px]">
-        {% for d in activity %}
-        <div class="flex-1 flex flex-col items-center justify-end gap-1">
-          {% if d.count %}<span class="text-xs text-[#7C8C80]">{{ d.count }}</span>{% endif %}
-          <div class="w-10 md:w-12 rounded-t-xl bg-[#FFA64D]" style="height: {{ d.height }}px"></div>
-          <span class="mt-1 text-base md:text-xl text-[#6E7F66]">{{ d.day }}</span>
-        </div>
-        {% endfor %}
+      <div class="mt-6 grid sm:grid-cols-2 gap-4">
+        <a href="{% url 'saved_meals:show_saved_meals' %}" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Saved Meals</p>
+            <p class="text-sm text-[#7C8C80]">Your saved menus and cooking history</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="/kulkas/" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Kulkas</p>
+            <p class="text-sm text-[#7C8C80]">Check what is in your fridge</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="{% url 'discovery:show_discovery' %}" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Recipes</p>
+            <p class="text-sm text-[#7C8C80]">Find something to cook today</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="/bookmarks/" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Bookmarks</p>
+            <p class="text-sm text-[#7C8C80]">Recipes you want to try later</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
       </div>
     </section>
 
@@ -67,4 +89,57 @@
 
   </div>
 </div>
+
+<div id="flash-data" hidden>{% for message in messages %}<span>{{ message }}</span>{% endfor %}</div>
+
+<script>
+  function showToast(text, duration = 2000) {
+    const toast = document.createElement('div');
+    toast.setAttribute('role', 'status');
+    toast.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+      <span></span>`;
+    toast.querySelector('span').textContent = text;
+
+    Object.assign(toast.style, {
+      position: 'fixed',
+      top: '20px',
+      left: '50%',
+      zIndex: '9999',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 16px',
+      borderRadius: '9999px',
+      background: '#344C3D',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      boxShadow: '0 4px 12px rgba(0,0,0,.2)',
+      opacity: '0',
+      transform: 'translate(-50%, -8px)',
+      transition: 'opacity .3s, transform .3s',
+    });
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translate(-50%, 0)';
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translate(-50%, -8px)';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  document.querySelectorAll('#flash-data span').forEach((el, i) => {
+    setTimeout(() => showToast(el.textContent), i * 150);
+  });
+</script>
 {% endblock content %}

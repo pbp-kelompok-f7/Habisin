@@ -1,36 +1,132 @@
-from django.shortcuts import render
+import json
+from decimal import Decimal
+from functools import wraps
 
-TABS = [("fridge", "Fridge"), ("freezer", "Freezer"), ("pantry", "Pantry")]
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.views.decorators.http import require_GET, require_POST
 
-ITEMS = [
-    {"id": 1, "name": "Ayam", "amount": 1, "unit": "kg", "place": "freezer"},
-    {"id": 2, "name": "Ikan", "amount": 3, "unit": "kg", "place": "freezer"},
-    {"id": 3, "name": "Daging Sapi", "amount": 500, "unit": "g", "place": "freezer"},
-    {"id": 4, "name": "Udang", "amount": 250, "unit": "g", "place": "freezer"},
-    {"id": 5, "name": "Telur", "amount": 10, "unit": "pcs", "place": "fridge"},
-    {"id": 6, "name": "Susu", "amount": 1, "unit": "l", "place": "fridge"},
-    {"id": 7, "name": "Wortel", "amount": 500, "unit": "g", "place": "fridge"},
-    {"id": 8, "name": "Tomat", "amount": 4, "unit": "pcs", "place": "fridge"},
-    {"id": 9, "name": "Beras", "amount": 5, "unit": "kg", "place": "pantry"},
-    {"id": 10, "name": "Gula", "amount": 1, "unit": "kg", "place": "pantry"},
-    {"id": 11, "name": "Minyak Goreng", "amount": 2, "unit": "l", "place": "pantry"},
-]
+from .forms import InventoryItemForm
+from .models import InventoryItem
+
+TABS = InventoryItem.Place.choices
+TAB_KEYS = {key for key, _ in TABS}
 
 
-def show_fridge(request):
+def api_login_required(view):
+    """Seperti login_required, tapi membalas JSON 401 (bukan redirect HTML) agar bisa dibaca JavaScript."""
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Silakan masuk terlebih dahulu."}, status=401)
+        return view(request, *args, **kwargs)
+    return wrapper
+
+
+def format_amount(value):
+    """Decimal('10.00') -> '10', Decimal('0.50') -> '0.5'."""
+    return format(Decimal(value).normalize(), "f")
+
+
+def serialize(item):
+    return {
+        "id": item.id,
+        "name": item.name,
+        "amount": format_amount(item.amount),
+        "unit": item.unit,
+        "place": item.place,
+    }
+
+
+MAX_ITEMS_PER_USER = 500
+
+
+def read_json(request):
+    """Baca body JSON berupa objek, atau None kalau tidak valid."""
+    try:
+        data = json.loads(request.body or b"{}")
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def form_errors(form):
+    return {field: [str(e) for e in errs] for field, errs in form.errors.items()}
+
+
+def filtered_items(request):
+    """Ambil tab dan kata kunci dari query string, lalu kembalikan bahan milik user yang login."""
     tab = request.GET.get("tab", "fridge")
-    if tab not in dict(TABS):
+    if tab not in TAB_KEYS:
         tab = "fridge"
-    q = request.GET.get("q", "").strip()
-
-    items = [i for i in ITEMS if i["place"] == tab]
+    q = request.GET.get("q", "").strip()[:80]
+    items = InventoryItem.objects.filter(user=request.user, place=tab)
     if q:
-        items = [i for i in items if q.lower() in i["name"].lower()]
+        items = items.filter(name__icontains=q)
+    return tab, q, items
 
+
+@login_required
+def show_fridge(request):
+    tab, q, items = filtered_items(request)
     return render(request, "fridge/index.html", {
         "tabs": TABS,
+        "units": InventoryItem.Unit.choices,
         "tab": tab,
-        "tab_label": dict(TABS)[tab],
         "q": q,
-        "items": items,
+        "items": [serialize(i) for i in items],  # dipakai JavaScript sebagai data awal
     })
+
+
+@require_GET
+@api_login_required
+def item_list(request):
+    _, _, items = filtered_items(request)
+    return JsonResponse({"items": [serialize(i) for i in items]})
+
+
+@require_POST
+@api_login_required
+def item_create(request):
+    data = read_json(request)
+    if data is None:
+        return JsonResponse({"error": "Data tidak valid."}, status=400)
+
+    if InventoryItem.objects.filter(user=request.user).count() >= MAX_ITEMS_PER_USER:
+        return JsonResponse(
+            {"error": f"Maksimal {MAX_ITEMS_PER_USER} bahan. Hapus beberapa bahan dulu."}, status=400
+        )
+
+    form = InventoryItemForm(data)
+    if not form.is_valid():
+        return JsonResponse({"errors": form_errors(form)}, status=400)
+
+    item = form.save(commit=False)
+    item.user = request.user  # pemilik selalu user yang login, tidak diambil dari input
+    item.save()
+    return JsonResponse({"item": serialize(item)}, status=201)
+
+
+@require_POST
+@api_login_required
+def item_update(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk, user=request.user)
+    data = read_json(request)
+    if data is None:
+        return JsonResponse({"error": "Data tidak valid."}, status=400)
+
+    form = InventoryItemForm(data, instance=item)
+    if not form.is_valid():
+        return JsonResponse({"errors": form_errors(form)}, status=400)
+
+    form.save()
+    return JsonResponse({"item": serialize(item)})
+
+
+@require_POST
+@api_login_required
+def item_delete(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk, user=request.user)
+    item.delete()
+    return JsonResponse({"deleted": pk})

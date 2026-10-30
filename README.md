@@ -10,7 +10,7 @@ Pengguna cukup memasukkan data sisa bahan makanan di kulkas mereka, lalu sistem 
 yang relevan. Website ini memberikan manfaat bagi pengguna untuk menghemat pengeluaran sekaligus mengurangi limbah
 makanan yang mereka hasilkan.
 
-Platform ini mengintegrasikan Spoonacular API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide
+Platform ini mengintegrasikan TheMealDB API untuk pencarian bahan dan resep. Pengguna tidak hanya bisa menemukan ide
 masakan, tetapi juga dapat mengelola _fridge inventory_ mereka, menyimpan resep, melacak porsi makanan yang
 terselamatkan, hingga saling berbagi _review_ antarpengguna.
 
@@ -28,9 +28,9 @@ Bertanggung jawab atas keamanan akses pengguna (registrasi dan login) serta peng
 preferensi personal mereka. Selain itu, juga mengelola ketersediaan bahan makanan sisa yang dimiliki pengguna di rumah
 untuk nantinya digunakan sebagai input pencarian.
 
-- Meals Planner (Amelinda Fedora Faragusti)
+- Community / Personal Reviews (Amelinda Fedora Faragusti)
 
-Membantu pengguna merencanakan makanan sehari-hari berdasarkan resep yang sudah disimpan.
+Section yang memfasilitasi pengguna untuk menilai resep masakan yang sudah mereka coba buat.
 
 - Recipe Discovery & Bookmarks (Risyad Athaya Muhammad)
 
@@ -42,15 +42,15 @@ dapat menambahkan resep ke beberapa list kategori (_bookmarks_), seperti _favour
 Melihat porsi makanan yang terselamatkan serta masakan yang sudah berhasil dieksekusi sebelumnya. Daftar riwayat bisa
 diubah dan dihapus oleh pengguna.
 
-- Landing Page & Community / Personal Reviews (Umar Faiz Rahman)
+- Landing Page & Meals Planner (Umar Faiz Rahman)
 
-Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman yang memfasilitasi pengguna untuk menilai resep
-masakan yang sudah mereka coba buat.
+Menyajikan halaman beranda untuk menyambut pengguna baru dan halaman lain yang membantu pengguna merencanakan makanan
+sehari-hari berdasarkan resep yang sudah disimpan.
 
 ## Public API
-Public API yang kami gunakan: Spoonacular API.
+Public API yang kami gunakan: TheMealDB API.
 
-Untuk dokumentasinya dapat dilihat melalui link berikut: https://spoonacular.com/food-api/docs.
+Untuk dokumentasinya dapat dilihat melalui link berikut: https://www.themealdb.com/documentation.
 
 ## Jenis Pengguna
 - Belum Login: Dapat melihat landing page, melihat resep (jumlah resep yang bisa dilihat dibatasi), dan share resep.
@@ -118,11 +118,45 @@ Buka `/meals-planner/` untuk menyusun sarapan, makan siang, dan makan malam pada
 Senin sampai Minggu. Pilih hari, lalu tambah/ganti resep atau hapus menu dengan
 tombol silang. Daftar bahan dan progres dihitung ulang setiap menu berubah.
 
-Kunjungan pertama berisi empat contoh menu yang bisa diedit. Rencana disimpan di
-sesi browser dan dimulai kosong saat memasuki minggu berikutnya (Asia/Jakarta).
-Katalog sementara memakai tiga resep contoh dari landing page. Daftar belanja
-menggabungkan bahan dari menu mingguan; pengurangan stok kulkas dan sinkronisasi
-ke akun menunggu integrasi modul inventory/authentication.
+Login diperlukan untuk membuka planner. Setiap menu disimpan di model
+`PlannedMeal`, terkait akun, tanggal, dan waktu makan. Satu akun hanya dapat
+memiliki satu menu pada setiap tanggal/waktu makan. Rencana dapat dibuka kembali
+dari browser lain; pindah minggu tidak menghapus riwayat. Tanggal hari ini
+mengikuti zona waktu Asia/Jakarta.
+
+Gunakan navigasi minggu untuk melihat rencana sebelumnya atau menyusun minggu
+berikutnya. Pilihan menu berisi `SavedMeal` milik akun yang sedang login dengan
+status `SAVED`, serta tiga resep contoh yang diberi label. Resep akun lain,
+resep tanpa pemilik, dan riwayat masakan tidak ditawarkan. Nama, gambar, waktu
+masak, dan bahan disalin saat menu dijadwalkan sehingga perubahan atau
+penghapusan resep sumber tidak merusak rencana yang sudah dibuat.
+
+Ringkasan bahan menggabungkan bahan yang diketahui dari menu dalam minggu yang
+dipilih. Model `SavedMeal` saat ini belum menyediakan rincian bahan, sehingga
+planner menandai menu yang datanya belum lengkap. Stok kulkas belum dikurangkan
+karena modul inventory masih menggunakan data contoh. Rencana sesi browser
+versi lama tidak otomatis dihubungkan ke akun karena belum memiliki identitas
+pemilik; data sesi tersebut tidak dihapus oleh pembaruan ini.
+
+Setelah mengambil pembaruan, jalankan migrasi sebelum menjalankan server:
+
+```powershell
+.\env\Scripts\python.exe manage.py migrate
+.\env\Scripts\python.exe manage.py runserver
+```
+
+Sebelum melanjutkan pekerjaan pada branch planner, ambil perubahan terbaru:
+
+```powershell
+git switch feature/meals-planner
+git pull --ff-only origin feature/meals-planner
+git fetch origin main
+git merge origin/main
+```
+
+Jika ada perubahan lokal yang belum di-commit atau konflik, selesaikan dahulu
+sebelum melanjutkan. Push dilakukan bertahap ke branch fitur setelah pengujian;
+penggabungan ke `main` dan deployment dilakukan terpisah.
 
 Pengecekan modul:
 
