@@ -115,6 +115,17 @@ class ShowDiscoveryTests(TestCase):
         self.assertNotContains(response, 'id="recipe-search"')
         self.assertNotContains(response, 'id="fridge-ingredients"')
 
+    def test_guest_limited_page_uses_landing_navbar(self):
+        with patch("discovery.views._fetch_json", side_effect=fake_mealdb()):
+            response = self.client.get(reverse("discovery:show_discovery"))
+
+        self.assertContains(response, 'class="lp-nav nav-shell"')
+        self.assertContains(response, f'href="{reverse("discovery:show_discovery")}" class="lp-link is-active" aria-current="page"')
+        self.assertContains(response, f'href="{reverse("home:show_home")}" class="lp-link"')
+        self.assertContains(response, f'href="{reverse("authentication:login")}"')
+        # The full app navbar (Kulkas, Bookmark, Meals Planner, ...) is for signed-in users only
+        self.assertNotContains(response, 'id="main-nav"')
+
 
 class RecipeDetailTests(TestCase):
     def setUp(self):

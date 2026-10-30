@@ -1,0 +1,22 @@
+{% load static %}
+{% with app=request.resolver_match.app_name %}
+<header class="lp-nav nav-shell">
+<div class="site-container lp-nav-in nav-shell-in">
+  <a href="{% url 'home:show_home' %}" class="lp-brand"><img src="{% static 'home/img/LOGO.svg' %}" alt="">Habisin</a>
+  <button type="button" class="nav-toggle" aria-label="Buka menu" aria-expanded="false" aria-controls="landing-nav">
+    <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <nav id="landing-nav" class="lp-menu-wrap nav-collapse">
+    <div class="lp-menu">
+      <a href="{% url 'home:show_home' %}" class="lp-link{% if app == 'home' %} is-active{% endif %}"{% if app == 'home' %} aria-current="page"{% endif %}>Beranda</a>
+      <a href="{% url 'discovery:show_discovery' %}" class="lp-link{% if app == 'discovery' %} is-active{% endif %}"{% if app == 'discovery' %} aria-current="page"{% endif %}>Resep</a>
+    </div>
+    <div class="lp-auth">
+      <a href="{% url 'authentication:login' %}" class="lp-link lp-outline">Sign In</a>
+      <a href="{% url 'authentication:register' %}" class="lp-link is-active">Sign Up</a>
+    </div>
+  </nav>
+</div>
+</header>
+{% endwith %}
