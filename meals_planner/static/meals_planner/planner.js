@@ -3,19 +3,22 @@
   const root = document.querySelector(".planner");
   if (!root) return;
   let state = JSON.parse(document.getElementById("planner-state").textContent);
-  let recipes = state.recipes || JSON.parse(document.getElementById("planner-recipes").textContent);
-  let recipeById = new Map(recipes.map(recipe => [recipe.id, recipe]));
+  let recipeById = new Map(state.recipes.map(recipe => [recipe.id, recipe]));
   const tabs = [...document.querySelectorAll("[data-day]")];
   const cards = [...document.querySelectorAll("[data-slot]")];
   const dialog = document.getElementById("recipe-dialog");
   const search = document.getElementById("recipe-search");
   const status = document.getElementById("planner-status");
   const recipeOptions = document.querySelector(".recipe-options");
+  const recipeMessage = document.getElementById("recipe-no-results");
   const recoveryLinks = [document.getElementById("planner-recovery"), document.getElementById("dialog-recovery")];
   let selectedDay = Number(root.dataset.selectedDay);
   let editingSlot = null;
   let opener = null;
   let saving = false;
+  let defaultChoices = null;
+  let searchController = null;
+  let searchTimer = null;
   const navigation = document.querySelector(".planner-nav, .site-header nav > div:first-child");
   const activeNavigation = navigation?.querySelector('.is-active, [aria-current="page"]');
   if (activeNavigation && navigation.scrollWidth > navigation.clientWidth) {
@@ -117,55 +120,78 @@
     root.dispatchEvent(new CustomEvent("planner:statechange", {detail: {state, selectedDay, reason}}));
   }
 
-  function filterRecipes() {
-    const query = search.value.trim().toLocaleLowerCase("id-ID");
-    const options = [...recipeOptions.querySelectorAll("[data-recipe]")];
-    options.forEach(option => { option.hidden = !option.dataset.search.toLocaleLowerCase("id-ID").includes(query); });
-    document.getElementById("recipe-no-results").hidden = options.some(option => !option.hidden);
+  function recipeOption(recipe) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "recipe-option";
+    button.dataset.recipe = recipe.id;
+    button.disabled = saving;
+    const image = document.createElement("img");
+    image.src = recipe.image_url;
+    image.width = 88;
+    image.height = 76;
+    image.alt = "";
+    image.loading = "lazy";
+    const copy = document.createElement("span");
+    copy.className = "recipe-option-copy";
+    const name = document.createElement("strong");
+    name.textContent = recipe.name;
+    const saved = document.createElement("span");
+    saved.className = `recipe-source${recipe.saved ? "" : " is-unsaved"}`;
+    saved.textContent = recipe.saved ? "Tersimpan" : "Belum disimpan";
+    const ingredients = document.createElement("span");
+    ingredients.className = "recipe-ingredients";
+    ingredients.textContent = recipe.ingredients.length ? recipe.ingredients.join(", ") : "Bahan belum tersedia";
+    copy.append(name, saved, ingredients);
+    const plus = document.createElement("span");
+    plus.className = "recipe-option-plus";
+    plus.setAttribute("aria-hidden", "true");
+    plus.textContent = "+";
+    button.append(image, copy, plus);
+    return button;
   }
 
-  function refreshRecipes() {
-    recipes = state.recipes || recipes;
-    recipeById = new Map(recipes.map(recipe => [recipe.id, recipe]));
-    recipeOptions.replaceChildren(...recipes.filter(recipe => recipe.selectable !== false).map(recipe => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "recipe-option";
-      button.dataset.recipe = recipe.id;
-      button.dataset.search = `${recipe.name} ${(recipe.ingredients || []).join(" ")}`;
-      button.disabled = saving;
-      let image;
-      if (recipe.image_url) {
-        image = document.createElement("img");
-        image.src = recipe.image_url;
-        image.width = 88;
-        image.height = 76;
-        image.alt = "";
-        image.loading = "lazy";
-      } else {
-        image = document.createElement("span");
-        image.className = "recipe-image-placeholder";
-        image.setAttribute("aria-hidden", "true");
-        image.textContent = "🍽";
+  function showRecipes(choices, emptyMessage) {
+    recipeOptions.replaceChildren(...choices.map(recipeOption));
+    recipeMessage.textContent = choices.length ? "" : emptyMessage;
+    recipeMessage.hidden = choices.length > 0;
+  }
+
+  async function loadRecipes() {
+    const query = search.value.trim();
+    if (!query && defaultChoices) {
+      searchController?.abort();
+      showRecipes(defaultChoices, "Belum ada resep untuk ditampilkan.");
+      return;
+    }
+    searchController?.abort();
+    searchController = new AbortController();
+    recipeOptions.replaceChildren();
+    recipeMessage.textContent = query ? `Mencari "${query}" di TheMealDB...` : "Memuat resep...";
+    recipeMessage.hidden = false;
+    try {
+      const url = new URL(root.dataset.recipesUrl, window.location.origin);
+      if (query) url.searchParams.set("q", query);
+      const response = await fetch(url, {credentials: "same-origin", signal: searchController.signal});
+      const data = await response.json().catch(() => null);
+      if (response.status === 401) {
+        showRecovery(data?.login_url);
+        throw new Error(data?.error);
       }
-      const copy = document.createElement("span");
-      copy.className = "recipe-option-copy";
-      const name = document.createElement("strong");
-      name.textContent = recipe.name;
-      const source = document.createElement("span");
-      source.className = `recipe-source${recipe.is_example ? " is-example" : ""}`;
-      source.textContent = recipe.source_label || (recipe.is_example ? "Resep contoh" : "Resep tersimpan");
-      const details = document.createElement("span");
-      details.textContent = [recipe.minutes ? `${recipe.minutes} menit` : "", (recipe.ingredients || []).join(", ")].filter(Boolean).join(" · ");
-      copy.append(name, source, details);
-      const plus = document.createElement("span");
-      plus.className = "recipe-option-plus";
-      plus.setAttribute("aria-hidden", "true");
-      plus.textContent = "+";
-      button.append(image, copy, plus);
-      return button;
-    }));
-    filterRecipes();
+      if (!response.ok || !Array.isArray(data?.recipes)) throw new Error();
+      if (!query) defaultChoices = data.recipes;
+      if (query === search.value.trim()) {
+        showRecipes(data.recipes, query ? "Resep belum ditemukan. Coba nama resep atau bahan lain dalam bahasa Inggris." : "Belum ada resep untuk ditampilkan.");
+      }
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      showRecipes([], error.message || "Resep belum dapat dimuat. Periksa koneksi lalu coba lagi.");
+    }
+  }
+
+  function scheduleSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadRecipes, 350);
   }
 
   function selectDay(day, updateUrl = true) {
@@ -223,12 +249,13 @@
       document.getElementById("dialog-error").textContent = "";
       clearRecovery();
       search.value = "";
-      filterRecipes();
+      clearTimeout(searchTimer);
+      loadRecipes();
       dialog.showModal();
       search.focus();
     });
   });
-  search.addEventListener("input", filterRecipes);
+  search.addEventListener("input", scheduleSearch);
   document.getElementById("recipe-form").addEventListener("submit", event => event.preventDefault());
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", event => {
@@ -274,7 +301,7 @@
         throw new Error(data?.error || fallback);
       }
       state = data;
-      refreshRecipes();
+      recipeById = new Map(state.recipes.map(recipe => [recipe.id, recipe]));
       render();
       focusAfterSave = cards.find(card => card.dataset.slot === slot)?.querySelector(recipe ? ".meal-change" : ".meal-add");
       if (dialog.open) dialog.close();

@@ -10,7 +10,9 @@ class PlannedMeal(models.Model):
 
     class Source(models.TextChoices):
         SAVED = "saved", "Resep tersimpan"
+        # Legacy sources kept so older snapshots still display; new plans come from TheMealDB.
         STARTER = "starter", "Resep contoh"
+        MEALDB = "mealdb", "TheMealDB"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="planned_meals"
