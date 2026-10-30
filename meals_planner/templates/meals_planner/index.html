@@ -4,9 +4,12 @@
 {% block lang %}id{% endblock %}
 {% block title %}Meals Planner | Habisin{% endblock %}
 {% block meta %}
-<link rel="stylesheet" href="{% static 'meals_planner/planner.css' %}">
-<script defer src="{% static 'meals_planner/planner.js' %}"></script>
-<script defer src="{% static 'meals_planner/calendar.js' %}"></script>
+{% comment %}Bump this release version when planner assets change to refresh cached files together.{% endcomment %}
+{% with asset_version="20261030-calendar-1" %}
+<link rel="stylesheet" href="{% static 'meals_planner/planner.css' %}?v={{ asset_version }}">
+<script defer src="{% static 'meals_planner/planner.js' %}?v={{ asset_version }}"></script>
+<script defer src="{% static 'meals_planner/calendar.js' %}?v={{ asset_version }}"></script>
+{% endwith %}
 {% endblock %}
 
 

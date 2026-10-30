@@ -155,6 +155,12 @@ Navigasi bulan memakai AJAX, sedangkan tautan tanggal tetap dapat dibuka lewat
 request halaman biasa. Kalender menggunakan model yang sudah ada dan tidak
 memerlukan migrasi tambahan.
 
+Jika tanggal kalender berderet sebagai teks biasa setelah mengambil pembaruan,
+tekan **Ctrl+Shift+R** untuk memuat ulang CSS dan JavaScript tanpa cache browser.
+Ketiga aset planner memakai parameter versi yang sama di template
+`meals_planner/templates/meals_planner/index.html`. Saat mengubah aset planner,
+naikkan `asset_version` di template agar browser mengambil versi terbarunya.
+
 ### Bahan dan pembaruan lokal
 
 Ringkasan bahan menggabungkan bahan yang diketahui dari menu dalam minggu yang
