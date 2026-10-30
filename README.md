@@ -131,10 +131,36 @@ resep tanpa pemilik, dan riwayat masakan tidak ditawarkan. Nama, gambar, waktu
 masak, dan bahan disalin saat menu dijadwalkan sehingga perubahan atau
 penghapusan resep sumber tidak merusak rencana yang sudah dibuat.
 
+### Kalender menu
+
+Kalender bulanan berada di samping menu harian pada desktop dan di atas menu
+harian pada layar kecil. Klik tanggal untuk membuka rencana pada hari tersebut;
+tanggal dari minggu lain juga dapat dipilih langsung.
+
+- Panah kiri/kanan mengganti bulan tanpa mengubah hari yang sedang diedit.
+- Tombol **Hari ini** kembali ke tanggal hari ini menurut zona waktu Asia/Jakarta.
+- Tanggal terpilih berwarna hijau gelap; tanggal hari ini diberi garis penanda.
+- Setiap titik berwarna mewakili satu menu yang terjadwal, maksimal tiga per hari.
+  Jumlah titik dan ringkasan bulanan langsung berubah setelah tambah/hapus menu.
+- Gunakan Tab untuk masuk ke kalender, tombol panah untuk berpindah fokus tanggal,
+  dan Enter untuk memilih. Home/End menuju awal/akhir baris minggu.
+
+Data kalender diambil dari `PlannedMeal` milik pengguna yang sedang login.
+Endpoint GET `/meals-planner/calendar/?month=2026-10` mengembalikan 42 tanggal
+dalam enam baris minggu, jumlah menu per tanggal, dan total bulan yang dipilih.
+Tanggal tetangga bulan tetap ditampilkan, tetapi tidak masuk total bulanan.
+Tanpa parameter `month`, endpoint memakai bulan saat ini. Bulan tidak valid
+menghasilkan 400; pengguna yang belum login mendapat 401. Respons tidak di-cache.
+Navigasi bulan memakai AJAX, sedangkan tautan tanggal tetap dapat dibuka lewat
+request halaman biasa. Kalender menggunakan model yang sudah ada dan tidak
+memerlukan migrasi tambahan.
+
+### Bahan dan pembaruan lokal
+
 Ringkasan bahan menggabungkan bahan yang diketahui dari menu dalam minggu yang
-dipilih. Model `SavedMeal` saat ini belum menyediakan rincian bahan, sehingga
-planner menandai menu yang datanya belum lengkap. Stok kulkas belum dikurangkan
-karena modul inventory masih menggunakan data contoh. Rencana sesi browser
+dipilih. Planner belum membaca rincian bahan dari `SavedMeal`, sehingga menu
+tersebut ditandai belum lengkap. Ringkasan belum menghitung pengurangan stok
+dari modul inventory. Rencana sesi browser
 versi lama tidak otomatis dihubungkan ke akun karena belum memiliki identitas
 pemilik; data sesi tersebut tidak dihapus oleh pembaruan ini.
 
@@ -163,3 +189,9 @@ Pengecekan modul:
 ```powershell
 .\env\Scripts\python.exe manage.py test meals_planner
 ```
+
+Tes kalender mencakup pergantian bulan/tahun, tahun kabisat, batas tanggal,
+pemisahan data antar akun, perubahan jumlah menu, dan pembukaan hari dari bulan
+berbeda. Untuk pengecekan tampilan, pilih tanggal lintas minggu, tambah/ganti/hapus
+menu, lalu muat ulang dan periksa titik kalender serta ringkasan bulan. Ulangi
+pada layar kecil untuk memastikan kalender dan menu tetap dapat digunakan.

@@ -6,11 +6,12 @@
 {% block meta %}
 <link rel="stylesheet" href="{% static 'meals_planner/planner.css' %}">
 <script defer src="{% static 'meals_planner/planner.js' %}"></script>
+<script defer src="{% static 'meals_planner/calendar.js' %}"></script>
 {% endblock %}
 
 
 {% block content %}
-<main class="planner" data-update-url="{% url 'meals_planner:update_meal' %}" data-selected-day="{{ selected_day }}">
+<main class="planner" data-update-url="{% url 'meals_planner:update_meal' %}" data-calendar-url="{% url 'meals_planner:calendar_data' %}" data-selected-day="{{ selected_day }}" data-selected-date="{{ selected_date }}">
   <h1>Meals Planner</h1>
   <p class="planner-subtitle" id="planner-subtitle">{% if selected_day == state.today %}Menu untuk hari ini!{% else %}Menu untuk hari {{ selected_name }}!{% endif %}</p>
   <p class="planner-account">Rencana tersimpan di akunmu. Menu minggu sebelumnya tetap bisa dibuka.</p>
@@ -22,16 +23,17 @@
     {% if state.week != current_week %}<a class="week-current" href="?week={{ current_week }}" data-week-link>Minggu ini</a>{% else %}<span class="week-current is-current">Minggu ini</span>{% endif %}
   </nav>
 
-  <nav class="planner-days" aria-label="Pilih hari">
+  <div class="planner-layout">
+    <div class="planner-main">
+    <nav class="planner-days" aria-label="Pilih hari">
     {% for day in days %}
     <a href="?week={{ state.week }}&amp;day={{ day.index }}" class="planner-day{% if day.index == selected_day %} is-selected{% endif %}" data-day="{{ day.index }}" data-name="{{ day.name }}" data-date-label="{{ day.date_label }}"{% if day.index == selected_day %} aria-current="date"{% endif %}>
       <span>{{ day.short }}{% if day.index == state.today %}<span class="today-label"> · hari ini</span>{% endif %}</span>
       <span class="planner-day-date">{{ day.date_label }}</span>
     </a>
     {% endfor %}
-  </nav>
+    </nav>
 
-  <div class="planner-layout">
     <section class="meal-list" aria-label="Menu harian">
       {% for slot in slots %}
       <article class="meal-card{% if not slot.recipe %} is-empty{% endif %}" data-slot="{{ slot.id }}" data-label="{{ slot.label }}">
@@ -46,6 +48,34 @@
         </div>
       </article>
       {% endfor %}
+    </section>
+    </div>
+
+    <section class="planner-calendar planner-panel" aria-labelledby="calendar-title">
+      <div class="calendar-heading">
+        <h2 id="calendar-title">Kalender menu</h2>
+        <button class="calendar-today" type="button" data-calendar-today>Hari ini</button>
+      </div>
+      <p class="calendar-hint">Pilih tanggal untuk mengatur menu.</p>
+      <div class="calendar-month-nav">
+        <button class="calendar-nav" type="button" data-calendar-direction="previous" data-calendar-month="{{ calendar.previous_month|default:'' }}" aria-label="Bulan sebelumnya"{% if not calendar.previous_month %} disabled{% endif %}>←</button>
+        <h3 id="calendar-month-label">{{ calendar.label }}</h3>
+        <button class="calendar-nav" type="button" data-calendar-direction="next" data-calendar-month="{{ calendar.next_month|default:'' }}" aria-label="Bulan berikutnya"{% if not calendar.next_month %} disabled{% endif %}>→</button>
+      </div>
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+      </div>
+      <nav class="calendar-grid" id="calendar-grid" aria-labelledby="calendar-month-label">
+        {% for day in calendar.days %}
+        {% if day.selectable %}<a href="{{ day.url }}"{% else %}<span aria-disabled="true"{% endif %} class="calendar-day{% if not day.in_month %} is-outside{% endif %}{% if day.is_today %} is-today{% endif %}{% if day.date == selected_date %} is-selected{% endif %}" data-calendar-date="{{ day.date }}" data-calendar-week="{{ day.week }}" data-calendar-day="{{ day.weekday }}" data-count="{{ day.count }}" aria-label="{{ day.label }}, {{ day.count }} dari 3 menu{% if day.is_today %}, hari ini{% endif %}{% if day.date == selected_date %}, dipilih{% endif %}"{% if day.date == selected_date %} aria-current="date"{% endif %}>
+          <time class="calendar-day-number" datetime="{{ day.date }}">{{ day.day }}</time>
+          <span class="calendar-dots" aria-hidden="true"><span class="calendar-dot{% if day.count >= 1 %} is-filled{% endif %}"></span><span class="calendar-dot{% if day.count >= 2 %} is-filled{% endif %}"></span><span class="calendar-dot{% if day.count >= 3 %} is-filled{% endif %}"></span></span>
+        {% if day.selectable %}</a>{% else %}</span>{% endif %}
+        {% endfor %}
+      </nav>
+      <div class="calendar-legend" aria-hidden="true"><span class="calendar-legend-dot"></span><span>Satu titik = satu menu</span><span class="calendar-legend-today"></span><span>Hari ini</span></div>
+      <p class="calendar-summary" id="calendar-summary">{{ calendar.total }} menu di {{ calendar.scheduled_days }} hari bulan ini</p>
+      <p class="calendar-status" id="calendar-status" role="status" aria-live="polite"></p>
     </section>
 
     <aside class="planner-summary" aria-label="Ringkasan mingguan">
@@ -103,4 +133,5 @@
 </dialog>
 {{ state|json_script:"planner-state" }}
 {{ recipes|json_script:"planner-recipes" }}
+{{ calendar|json_script:"planner-calendar-state" }}
 {% endblock %}

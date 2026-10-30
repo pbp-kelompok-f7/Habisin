@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .catalog import DAYS, SLOTS
+from .calendar import month_state
 from .services import MONTHS, parse_week, set_meal, week_label, week_start, week_state
 
 
@@ -27,6 +28,7 @@ def show_planner(request):
         return JsonResponse({"error": str(error)}, status=400)
     raw_day = request.GET.get("day", str(today.weekday() if week == week_start(today) else 0))
     selected_day = int(raw_day) if raw_day in map(str, range(7)) else (today.weekday() if week == week_start(today) else 0)
+    selected_date = week + timedelta(days=selected_day)
     state = week_state(request.user, week, today)
     recipes = {recipe["id"]: recipe for recipe in state["recipes"]}
     selected_meals = state["meals"].get(str(selected_day), {})
@@ -45,6 +47,8 @@ def show_planner(request):
     context = {
         "state": state,
         "selected_day": selected_day,
+        "selected_date": selected_date.isoformat(),
+        "calendar": month_state(request.user, selected_date, today),
         "selected_name": DAYS[selected_day][1],
         "days": days,
         "slots": [

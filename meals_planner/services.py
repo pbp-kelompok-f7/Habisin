@@ -120,6 +120,7 @@ def week_state(user, week, today):
     return {
         "week": week.isoformat(),
         "current_week": current.isoformat(),
+        "today_date": today.isoformat(),
         "today": today.weekday() if week == current else None,
         "example": False,
         "meals": meals,
