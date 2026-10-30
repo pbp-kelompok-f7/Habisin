@@ -1,0 +1,32 @@
+{# Satu baris kategori di sidebar; butuh `category` dan `selected_category` #}
+<li class="group flex items-center gap-1 rounded-xl pr-2 transition-colors hover:bg-brand-beige has-[[aria-current=page]]:bg-brand-green has-[[aria-current=page]]:text-background">
+  <a href="?category={{ category.id }}"
+     class="flex min-w-0 flex-1 items-center gap-2 px-4 py-3 font-bold"
+     {% if category.id == selected_category.id %}aria-current="page"{% endif %}>
+    {% if category.is_default %}
+    <svg class="h-4 w-4 shrink-0 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+    {% endif %}
+    <span class="truncate">{{ category.name }}</span>
+    <span class="ml-auto shrink-0 text-200 font-normal opacity-70" data-count-for="{{ category.id }}">{{ category.recipe_count }}</span>
+  </a>
+  {% if not category.is_default %}
+  <button type="button"
+          aria-label="Ganti nama {{ category.name }}"
+          commandfor="rename-category-dialog"
+          command="show-modal"
+          data-rename-category="{{ category.id }}"
+          data-category-name="{{ category.name }}"
+          class="grid h-8 w-8 shrink-0 place-items-center rounded-lg opacity-70 transition hover:bg-background-white/20 hover:opacity-100 cursor-pointer">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+  </button>
+  <button type="button"
+          aria-label="Hapus {{ category.name }}"
+          commandfor="delete-category-dialog"
+          command="show-modal"
+          data-delete-category="{{ category.id }}"
+          data-category-name="{{ category.name }}"
+          class="grid h-8 w-8 shrink-0 place-items-center rounded-lg opacity-70 transition hover:bg-brand-red hover:text-background hover:opacity-100 cursor-pointer">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+  </button>
+  {% endif %}
+</li>

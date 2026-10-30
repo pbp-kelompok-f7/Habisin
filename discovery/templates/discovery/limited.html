@@ -31,4 +31,12 @@
     {% endif %}
   </section>
 </main>
+<script>
+  // Tamu belum punya kategori bookmark, jadi tombol simpan mengarahkan ke halaman login
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-bookmark]")) return;
+    event.preventDefault();
+    window.location.assign("{% url 'authentication:login' %}?next={{ request.path|urlencode }}");
+  });
+</script>
 {% endblock %}

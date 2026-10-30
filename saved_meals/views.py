@@ -4,7 +4,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
-from discovery.views import _lookup_meal, _extract_ingredients, _capitalize_words
+from discovery.views import _capitalize_words, _extract_ingredients, _lookup_meal
 from .models import SavedMeal
 from .forms import SavedMealForm, HistoryNoteForm
 from .openfoodfacts import estimate_meal_nutrition, scale_nutrition
@@ -164,6 +164,29 @@ def add_saved_meal(request):
         return JsonResponse({'success': True, 'meal': meal.to_dict()}, status=201)
 
     return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+
+@login_required
+@require_POST
+def add_recipe_to_saved_meals(request, recipe_id):
+    existing = SavedMeal.objects.filter(user=request.user, status='SAVED', recipe_id=recipe_id).first()
+    if existing:
+        return JsonResponse({'success': True, 'created': False, 'meal': existing.to_dict()})
+
+    meal = _lookup_meal(recipe_id)
+    if not meal:
+        return JsonResponse({'success': False, 'error': 'Resep tidak ditemukan.'}, status=404)
+
+    # MealDB tidak menyediakan waktu masak, kalori, dll., jadi field lainnya memakai nilai default model
+    saved_meal = SavedMeal.objects.create(
+        user=request.user,
+        recipe_id=recipe_id,
+        recipe_name=_capitalize_words(meal['strMeal']),
+        image_url=meal['strMealThumb'],
+        ingredients=', '.join(_capitalize_words(i) for i in _extract_ingredients(meal)),
+        status='SAVED',
+    )
+    return JsonResponse({'success': True, 'created': True, 'meal': saved_meal.to_dict()}, status=201)
 
 
 @login_required

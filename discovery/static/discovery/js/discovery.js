@@ -80,6 +80,11 @@
       field("name").textContent = recipe.name;
       renderMissing(field("ingredients"), recipe.missing);
       field("count").textContent = `${recipe.ingredient_count} bahan`;
+
+      const bookmark = card.querySelector("[data-bookmark]");
+      bookmark.dataset.bookmark = recipe.id;
+      bookmark.dataset.recipeName = recipe.name;
+      bookmark.setAttribute("aria-pressed", String(recipe.bookmarked));
       return card;
     });
     grid.replaceChildren(...cards);

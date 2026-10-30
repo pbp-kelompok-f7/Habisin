@@ -94,7 +94,7 @@ def item_create(request):
             {"error": f"You can store up to {MAX_ITEMS_PER_USER} items. Delete some items first."}, status=400
         )
 
-    form = InventoryItemForm(data)
+    form = InventoryItemForm(data, user=request.user)
     if not form.is_valid():
         return JsonResponse({"errors": form_errors(form)}, status=400)
 
@@ -112,7 +112,7 @@ def item_update(request, pk):
     if data is None:
         return JsonResponse({"error": "Invalid data."}, status=400)
 
-    form = InventoryItemForm(data, instance=item)
+    form = InventoryItemForm(data, instance=item, user=request.user)
     if not form.is_valid():
         return JsonResponse({"errors": form_errors(form)}, status=400)
 
