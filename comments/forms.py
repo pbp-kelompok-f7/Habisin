@@ -9,20 +9,20 @@ class CommentForm(forms.ModelForm):
             "content": forms.Textarea(attrs={
                 "rows": 3,
                 "maxlength": 1000,
-                "placeholder": "Bagikan tips atau variasi bahan yang kamu pakai...",
+                "placeholder": "Share your tips or ingredient variations...",
                 "class": "cm-textarea",
             }),
         }
-        labels = {"content": "Tulis komentar"}
+        labels = {"content": "Write a comment"}
         error_messages = {
             "content": {
-                "required": "Komentar tidak boleh kosong.",
-                "max_length": "Komentar maksimal 1000 karakter.",
+                "required": "Comment cannot be empty.",
+                "max_length": "Comment cannot exceed 1000 characters.",
             },
         }
 
     def clean_content(self):
         content = self.cleaned_data["content"].strip()
         if not content:
-            raise forms.ValidationError("Komentar tidak boleh kosong.")
+            raise forms.ValidationError("Comment cannot be empty.")
         return content

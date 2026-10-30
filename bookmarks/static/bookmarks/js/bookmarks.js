@@ -1,10 +1,10 @@
 (() => {
   const DEBOUNCE_MS = 400;
   const MESSAGES = {
-    error: "Terjadi kesalahan. Coba lagi.",
-    loading: "Memuat resep…",
-    searchError: "Gagal memuat resep. Coba lagi.",
-    noResults: (query) => `Tidak ada resep untuk "${query}" di ${categoryName}.`,
+    error: "An error occurred. Try again.",
+    loading: "Loading recipes…",
+    searchError: "Failed to load recipes. Try again.",
+    noResults: (query) => `No recipes found for "${query}" in ${categoryName}.`,
   };
   const PAGE_BUTTON_CLASS = "rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer";
   const CURRENT_PAGE_CLASS = "rounded-xl px-4 py-3 border-2 border-brand-green bg-brand-green text-background font-bold";
@@ -210,12 +210,12 @@
       field("image").alt = recipe.name;
       field("name").textContent = recipe.name;
       field("ingredients").textContent = recipe.ingredients.join(", ");
-      field("count").textContent = `${recipe.ingredient_count} bahan`;
+      field("count").textContent = `${recipe.ingredient_count} ingredients`;
 
       const remove = card.querySelector("[data-remove-recipe]");
       remove.dataset.removeRecipe = recipe.id;
       remove.dataset.recipeName = recipe.name;
-      remove.setAttribute("aria-label", `Hapus ${recipe.name} dari kategori`);
+      remove.setAttribute("aria-label", `Remove ${recipe.name} from category`);
       return card;
     });
     grid.replaceChildren(...cards);
@@ -245,7 +245,7 @@
     }
 
     const items = [
-      pageButton("‹", data.page - 1, { ariaLabel: "Halaman sebelumnya", disabled: !data.has_previous }),
+      pageButton("‹", data.page - 1, { ariaLabel: "Previous page", disabled: !data.has_previous }),
     ];
     for (const number of data.page_range) {
       if (number === null) {
@@ -257,7 +257,7 @@
         items.push(pageButton(String(number), number, { current: number === data.page }));
       }
     }
-    items.push(pageButton("›", data.page + 1, { ariaLabel: "Halaman berikutnya", disabled: !data.has_next }));
+    items.push(pageButton("›", data.page + 1, { ariaLabel: "Next page", disabled: !data.has_next }));
 
     pagination.replaceChildren(...items);
     pagination.hidden = false;

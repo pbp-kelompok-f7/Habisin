@@ -9,9 +9,9 @@
 
 {% block content %}
 <main class="site-container flex flex-col text-left">
-  <h1 class="md:text-900 text-left">Temukan Resep</h1>
+  <h1 class="md:text-900 text-left">Discover Recipes</h1>
   <div class="flex flex-row justify-between items-start w-full mb-8">
-    <span>Temukan resep dari bahan yang sudah ada di kulkasmu!</span>
+    <span>Find recipes using ingredients already in your fridge!</span>
     <form id="recipe-search"
           class="relative flex flex-row"
           role="search"
@@ -20,8 +20,8 @@
       <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search"
              name="recipe"
-             placeholder="Cari bahan atau resep"
-             aria-label="Cari bahan atau resep"
+             placeholder="Search ingredients or recipes"
+             aria-label="Search ingredients or recipes"
              autocomplete="off"
              class="w-[28ch] rounded-xl p-3 pl-10 bg-background-white">
     </form>
@@ -29,10 +29,10 @@
   <section class="flex flex-col p-8 gap-4 rounded-xl bg-background-white border-2 border-border-color mb-8">
     <div class="flex flex-row justify-between w-full items-center">
       <div class="">
-        <h2>Bahan di kulkasmu</h2>
-        <span>Pilih bahan untuk mencari resep yang memakai semuanya, atau untuk menyaring hasil pencarian.</span>
+        <h2>Ingredients in your fridge</h2>
+        <span>Select ingredients to find recipes that use them all, or to filter your search results.</span>
       </div>
-      <a class="rounded-xl px-4 py-3 bg-background font-bold" href="{% url 'fridge:show_fridge' %}">Kelola Kulkas</a>
+      <a class="rounded-xl px-4 py-3 bg-background font-bold" href="{% url 'fridge:show_fridge' %}">Manage Fridge</a>
     </div>
     <div id="fridge-ingredients" class="flex flex-row flex-wrap gap-2 w-full">
       {% for name in fridge_ingredients %}
@@ -41,14 +41,14 @@
                 data-ingredient="{{ name }}"
                 class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white cursor-pointer transition-colors hover:bg-brand-orange-light aria-pressed:bg-brand-green aria-pressed:text-background">{{ name }}</button>
       {% empty %}
-        <p class="text-muted">Kulkasmu masih kosong. Tambahkan bahan lewat Kelola Kulkas.</p>
+        <p class="text-muted">Your fridge is still empty. Add ingredients via Manage Fridge.</p>
       {% endfor %}
     </div>
   </section>
   <section id="recipe-section" class="flex flex-col w-full gap-4 scroll-mt-8">
-    <p id="recipe-status" class="text-muted" aria-live="polite">Cari bahan atau resep untuk menemukan resep.</p>
+    <p id="recipe-status" class="text-muted" aria-live="polite">Search ingredients or recipes to discover meals.</p>
     <div id="recipe-grid" class="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4 w-full"></div>
-    <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Halaman resep" hidden></nav>
+    <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Recipe pages" hidden></nav>
     <template id="recipe-card-template">{% include "discovery/components/recipe_card.html" %}</template>
   </section>
 

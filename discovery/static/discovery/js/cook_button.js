@@ -10,7 +10,7 @@
 
   button.addEventListener("click", async () => {
     button.disabled = true;
-    button.textContent = "Menambahkan…";
+    button.textContent = "Adding…";
     error.hidden = true;
     try {
       const response = await fetch(button.dataset.cookUrl, {

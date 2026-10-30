@@ -19,16 +19,16 @@ def waktu_lalu(value):
         return ""
     seconds = int((timezone.now() - value).total_seconds())
     if seconds < 60:
-        return "Baru saja"
+        return "Just now"
     if seconds < 3600:
-        return f"{seconds // 60} menit lalu"
+        return f"{seconds // 60} mins ago"
     if seconds < 86400:
-        return f"{seconds // 3600} jam lalu"
+        return f"{seconds // 3600} hours ago"
     days = seconds // 86400
     if days == 1:
-        return "Kemarin"
+        return "Yesterday"
     if days < 7:
-        return f"{days} hari lalu"
+        return f"{days} days ago"
     return timezone.localtime(value).strftime("%d/%m/%Y")
 
 

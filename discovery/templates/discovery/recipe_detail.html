@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Detail Resep - Habisin{% endblock %}
+{% block title %}Recipe Detail - Habisin{% endblock %}
 {% block meta %}
 {% if user.is_authenticated %}
 <script defer src="{% static 'discovery/js/bookmark_dialog.js' %}"></script>
@@ -24,23 +24,23 @@
           <div id="cook-action" class="flex flex-col items-end gap-1">
             {% if recipe.in_saved_meals %}
             <a href="{% url 'saved_meals:show_saved_meals' %}"
-               class="inline-flex items-center rounded-xl px-5 py-3 border-2 border-brand-green bg-background-white text-brand-green font-bold whitespace-nowrap transition-colors hover:bg-brand-beige">Lihat di Saved Meals</a>
+               class="inline-flex items-center rounded-xl px-5 py-3 border-2 border-brand-green bg-background-white text-brand-green font-bold whitespace-nowrap transition-colors hover:bg-brand-beige">View in Saved Meals</a>
             {% else %}
             <button type="button"
                     data-cook-url="{% url 'saved_meals:add_recipe_to_saved_meals' recipe.id %}"
                     data-csrf="{{ csrf_token }}"
                     class="rounded-xl px-5 py-3 bg-brand-green text-background font-bold transition hover:opacity-90 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">Cook</button>
-            <p data-cook-error class="text-sm text-brand-red" hidden>Gagal menambahkan ke Saved Meals. Coba lagi.</p>
+            <p data-cook-error class="text-sm text-brand-red" hidden>Failed to add to Saved Meals. Try again.</p>
             <template data-cook-done>
             <a href="{% url 'saved_meals:show_saved_meals' %}"
-               class="inline-flex items-center rounded-xl px-5 py-3 border-2 border-brand-green bg-background-white text-brand-green font-bold whitespace-nowrap transition-colors hover:bg-brand-beige">Lihat di Saved Meals</a>
+               class="inline-flex items-center rounded-xl px-5 py-3 border-2 border-brand-green bg-background-white text-brand-green font-bold whitespace-nowrap transition-colors hover:bg-brand-beige">View in Saved Meals</a>
             </template>
             {% endif %}
           </div>
           <button type="button"
                   aria-pressed="{% if recipe.bookmarked %}true{% else %}false{% endif %}"
                   aria-haspopup="dialog"
-                  aria-label="Simpan resep ke bookmark"
+                  aria-label="Save recipe to bookmarks"
                   class="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-white text-norfolk transition-colors hover:border-norfolk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fence aria-pressed:border-fiery aria-pressed:bg-blush aria-pressed:text-fiery cursor-pointer"
                   data-bookmark="{{ recipe.id }}"
                   data-recipe-name="{{ recipe.name }}">
@@ -50,7 +50,7 @@
           <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}"
              class="rounded-xl px-5 py-3 bg-brand-green text-background font-bold transition hover:opacity-90">Cook</a>
           <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}"
-             aria-label="Masuk untuk menyimpan resep ke bookmark"
+             aria-label="Log in to save recipe to bookmarks"
              class="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-white text-norfolk transition-colors hover:border-norfolk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fence aria-pressed:border-fiery aria-pressed:bg-blush aria-pressed:text-fiery">
             <svg class="h-5 w-5 fill-none group-aria-pressed:fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
           </a>
@@ -123,7 +123,7 @@
         {% endfor %}
       </ol>
       {% else %}
-      <p>Instruksi belum tersedia.</p>
+      <p>Instructions are not available yet.</p>
       {% endif %}
     </div>
   </section>

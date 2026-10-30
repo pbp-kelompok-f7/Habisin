@@ -1,15 +1,15 @@
 (() => {
   const DEBOUNCE_MS = 400;
   const MESSAGES = {
-    empty: "Cari bahan atau resep untuk menemukan resep.",
-    loading: "Memuat resep…",
-    error: "Gagal memuat resep. Coba lagi.",
+    empty: "Search ingredients or recipes to discover meals.",
+    loading: "Loading recipes…",
+    error: "Failed to load recipes. Try again.",
     allInFridge: "All ingredients are in your fridge",
     noResults: (query, ingredients) => {
       const parts = [];
       if (query) parts.push(`"${query}"`);
-      if (ingredients.length) parts.push(`dengan ${ingredients.join(", ")}`);
-      return `Tidak ada resep untuk ${parts.join(" ")}.`;
+      if (ingredients.length) parts.push(`with ${ingredients.join(", ")}`);
+      return `No recipes found for ${parts.join(" ")}.`;
     },
   };
   const PAGE_BUTTON_CLASS = "rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer";
@@ -79,7 +79,7 @@
       field("image").alt = recipe.name;
       field("name").textContent = recipe.name;
       renderMissing(field("ingredients"), recipe.missing);
-      field("count").textContent = `${recipe.ingredient_count} bahan`;
+      field("count").textContent = `${recipe.ingredient_count} ingredients`;
 
       const bookmark = card.querySelector("[data-bookmark]");
       bookmark.dataset.bookmark = recipe.id;
@@ -117,7 +117,7 @@
     }
 
     const items = [
-      pageButton("‹", data.page - 1, { ariaLabel: "Halaman sebelumnya", disabled: !data.has_previous }),
+      pageButton("‹", data.page - 1, { ariaLabel: "Previous page", disabled: !data.has_previous }),
     ];
     for (const number of data.page_range) {
       if (number === null) {
@@ -129,7 +129,7 @@
         items.push(pageButton(String(number), number, { current: number === data.page }));
       }
     }
-    items.push(pageButton("›", data.page + 1, { ariaLabel: "Halaman berikutnya", disabled: !data.has_next }));
+    items.push(pageButton("›", data.page + 1, { ariaLabel: "Next page", disabled: !data.has_next }));
 
     pagination.replaceChildren(...items);
     pagination.hidden = false;
