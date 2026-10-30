@@ -53,7 +53,7 @@
     });
   }
 
-  function render() {
+  function render(reason = "update") {
     const meals = state.meals[String(selectedDay)] || {};
     document.getElementById("planner-subtitle").textContent = selectedDay === state.today
       ? "Menu untuk hari ini!" : `Menu untuk hari ${tabs[selectedDay].dataset.name}!`;
@@ -114,6 +114,7 @@
       ? "Daftar bahan belum tersedia untuk menu yang dipilih."
       : "Tambahkan menu untuk melihat daftar bahannya.";
     document.getElementById("ingredients-incomplete").hidden = !state.missing_ingredients;
+    root.dispatchEvent(new CustomEvent("planner:statechange", {detail: {state, selectedDay, reason}}));
   }
 
   function filterRecipes() {
@@ -181,8 +182,10 @@
       announce("");
       clearRecovery();
     }
-    render();
+    render("selection");
   }
+
+  root.addEventListener("planner:selectday", event => selectDay(event.detail.day));
 
   document.querySelectorAll("[data-day], [data-progress-day]").forEach(link => {
     link.addEventListener("click", event => {
@@ -245,6 +248,7 @@
     saving = true;
     root.setAttribute("aria-busy", "true");
     document.querySelectorAll(".planner button, .recipe-dialog button").forEach(button => { button.disabled = true; });
+    root.dispatchEvent(new CustomEvent("planner:busychange"));
     document.getElementById("dialog-error").textContent = "";
     clearRecovery();
     announce("Menyimpan menu...");
@@ -286,6 +290,7 @@
       saving = false;
       root.removeAttribute("aria-busy");
       document.querySelectorAll(".planner button, .recipe-dialog button").forEach(button => { button.disabled = false; });
+      root.dispatchEvent(new CustomEvent("planner:busychange"));
       focusAfterSave?.focus();
     }
   }
