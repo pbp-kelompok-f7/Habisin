@@ -319,8 +319,16 @@
     if (data.success) {
       if (type === 'card') {
         document.getElementById(`meal-card-${mealId}`)?.remove();
+        const grid = document.getElementById('saved-grid');
+        if (grid && !grid.children.length) {
+          grid.innerHTML = '<div class="col-span-full py-12 text-center bg-white rounded-3xl border border-[#E9DFCE] p-8 text-gray-500">Tidak ada menu ditemukan.</div>';
+        }
       } else {
         document.getElementById(`history-row-${mealId}`)?.remove();
+        const tbody = document.getElementById('history-table-body');
+        if (tbody && !tbody.children.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-12 px-6 text-center text-gray-500">Belum ada riwayat masakan.</td></tr>';
+        }
       }
       updateMetrics(data.metrics);
     }
