@@ -12,3 +12,6 @@ class ProductionNavigationTests(SimpleTestCase):
         response = self.client.get(reverse("home:show_home"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("authentication:login"))
+        self.assertContains(response, 'class="lp-nav nav-shell"')
+        self.assertContains(response, f'href="{reverse("home:show_home")}" class="lp-link is-active" aria-current="page"')
+        self.assertNotContains(response, 'id="main-nav"')

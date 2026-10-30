@@ -12,6 +12,20 @@
 .site-footer-copy{text-align:center;margin-top:48px;color:#3d6354;font-size:18px}
 @media (max-width:860px){.site-footer-grid{grid-template-columns:1fr;gap:24px}}
 
+/* Guest navbar (landing + limited discovery) */
+.lp-nav{width:100%;border-bottom:1px solid #E5DEC9;background:#f7edda}
+.lp-nav-in{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-block:16px}
+.lp-brand{display:flex;align-items:center;gap:8px;flex-shrink:0;font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;line-height:32px;letter-spacing:-.02em;color:#0f3b2e}
+.lp-brand img{height:32px;width:auto}
+.lp-menu-wrap{display:flex;flex:1;align-items:center;justify-content:space-between;margin-left:16px}
+.lp-menu{display:flex;align-items:center;gap:4px}
+.lp-auth{display:flex;align-items:center;gap:12px}
+.lp-link{display:inline-flex;align-items:center;padding:7px 11px;border:1px solid transparent;border-radius:12px;font-size:14px;line-height:20px;font-weight:700;color:#09332c;transition:background .15s,color .15s}
+.lp-link:not(.is-active):hover{color:#2e4b3c}
+.lp-link.is-active{background:#09332c;border-color:#09332c;color:#f7edda}
+.lp-outline{background:#f4e9da;border-color:#d4cabb}
+@media (min-width:640px){.lp-menu{gap:8px}.lp-link{padding:7px 15px;font-size:16px;line-height:24px}}
+
 /* Hamburger menu */
 .nav-toggle{display:none}
 @media (max-width:899px){
