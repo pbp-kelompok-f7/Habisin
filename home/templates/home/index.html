@@ -8,6 +8,9 @@
 {% endblock %}
 
 {% block navbar %}
+{% if user.is_authenticated %}
+{% include 'components/navbar.html' %}
+{% else %}
 <header class="lp-nav nav-shell">
 <div class="site-container lp-nav-in nav-shell-in">
   <a href="{% url 'home:show_home' %}" class="lp-brand"><img src="{% static 'home/img/LOGO.svg' %}" alt="">Habisin</a>
@@ -27,6 +30,7 @@
   </nav>
 </div>
 </header>
+{% endif %}
 {% endblock %}
 
 {% block content %}
