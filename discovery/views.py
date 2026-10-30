@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from bookmarks.models import SavedRecipe
+from saved_meals.models import SavedMeal
 from comments.views import comment_section_context
 from fridge.models import InventoryItem
 from fridge.views import api_login_required
@@ -218,6 +219,9 @@ def show_recipe_detail(request, recipe_id):
             "instructions": _extract_instructions(meal),
             "bookmarked": request.user.is_authenticated and SavedRecipe.objects.filter(
                 category__user=request.user, recipe_id=recipe_id
+            ).exists(),
+            "in_saved_meals": request.user.is_authenticated and SavedMeal.objects.filter(
+                user=request.user, status="SAVED", recipe_id=recipe_id
             ).exists(),
         },
     }
