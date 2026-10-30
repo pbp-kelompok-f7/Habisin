@@ -6,7 +6,7 @@
     <div class="flex flex-col px-4 pb-4 gap-2 w-full h-full">
       <div class="flex flex-col items-start w-full">
         <h3 data-field="name" class="text-500">{{ recipe.name }}</h3>
-        <span data-field="ingredients" class="line-clamp-2">{{ recipe.ingredients|join:", " }}</span>
+        <p data-field="ingredients" class="line-clamp-2">{{ recipe.ingredients|join:", " }}</p>
       </div>
       <div class="flex items-center justify-between gap-2 pt-2 mt-auto">
         <div class="flex gap-3.5 text-200 text-muted">

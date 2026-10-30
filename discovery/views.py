@@ -1,4 +1,5 @@
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import URLError
 from urllib.parse import urlencode
@@ -44,15 +45,24 @@ def _lookup_meal(meal_id):
     return meals[0] if meals else None
 
 
-def _serialize_recipe(meal, details):
+def _missing_ingredients(ingredients, fridge_names):
+    # Cocokkan per kata secara utuh(?): "Chicken" mencakup "Chicken Breast", tapi "Egg" tidak mencakup "Eggplant"
+    patterns = [re.compile(rf"\b{re.escape(name)}\b", re.IGNORECASE) for name in fridge_names]
+    return [i for i in ingredients if not any(p.search(i) for p in patterns)]
+
+
+def _serialize_recipe(meal, details, fridge_names=None):
     ingredients = [_capitalize_words(i) for i in _extract_ingredients(details)] if details else []
-    return {
+    recipe = {
         "id": meal["idMeal"],
         "name": _capitalize_words(meal["strMeal"]),
         "image": meal["strMealThumb"],
         "ingredients": ingredients,
         "ingredient_count": len(ingredients),
     }
+    if fridge_names is not None:
+        recipe["missing"] = _missing_ingredients(ingredients, fridge_names)
+    return recipe
 
 
 def _preview_recipes():
@@ -65,7 +75,7 @@ def _meals_with_ingredient(name):
     return _fetch_json("filter.php", i=name.replace(" ", "_")).get("meals") or []
 
 
-def _search_recipes(query, ingredients, page_number):
+def _search_recipes(query, ingredients, page_number, fridge_names):
     results = []
     full_meals = {}
     if query:
@@ -98,7 +108,10 @@ def _search_recipes(query, ingredients, page_number):
     with ThreadPoolExecutor(max_workers=RECIPES_PER_PAGE) as executor:
         detailed_meals = list(executor.map(get_details, page_obj.object_list))
 
-    recipes = [_serialize_recipe(meal, details) for meal, details in zip(page_obj.object_list, detailed_meals)]
+    recipes = [
+        _serialize_recipe(meal, details, fridge_names)
+        for meal, details in zip(page_obj.object_list, detailed_meals)
+    ]
 
     page_range = [
         None if number == Paginator.ELLIPSIS else number
@@ -135,7 +148,8 @@ def show_discovery(request):
 def recipes_api(request):
     query = request.GET.get("q", "").strip()
     ingredients = [i.strip() for i in request.GET.getlist("ingredient") if i.strip()][:MAX_INGREDIENTS]
-    return JsonResponse(_search_recipes(query, ingredients, request.GET.get("page")))
+    fridge_names = _fridge_ingredients(request.user)
+    return JsonResponse(_search_recipes(query, ingredients, request.GET.get("page"), fridge_names))
 
 
 def show_recipe_detail(request, recipe_id):
