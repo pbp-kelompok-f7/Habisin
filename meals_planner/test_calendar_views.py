@@ -46,3 +46,18 @@ class CalendarEndpointTests(TestCase):
         for month in ("", "2026-13", "2026-10-30", "9999-12"):
             with self.subTest(month=month):
                 self.assertEqual(self.client.get(self.url, {"month": month}).status_code, 400)
+
+
+class CalendarPageTests(TestCase):
+    def test_calendar_follows_selected_date_across_month_boundary(self):
+        user = get_user_model().objects.create_user(username="calendar-page")
+        self.client.force_login(user)
+        set_meal(user, date(2026, 11, 1), "lunch", "spinach-omelet")
+        response = self.client.get(reverse("meals_planner:show_planner"), {"week": "2026-10-26", "day": "6"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["selected_date"], "2026-11-01")
+        self.assertEqual(response.context["calendar"]["month"], "2026-11")
+        self.assertEqual(response.context["calendar"]["total"], 1)
+        self.assertContains(response, 'id="calendar-grid"')
+        self.assertContains(response, 'data-calendar-date="2026-11-01"')
+        self.assertContains(response, reverse("meals_planner:calendar_data"))
