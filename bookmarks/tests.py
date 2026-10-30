@@ -156,3 +156,47 @@ class RecipeSaveTests(BookmarksTestCase):
         lookup.return_value = None
         response = self.post("recipe_save", 1, body={"category_ids": [default_category(self.user).id]})
         self.assertEqual(response.status_code, 404)
+
+
+class RecipeSearchTests(BookmarksTestCase):
+    def setUp(self):
+        super().setUp()
+        self.category = Category.objects.create(user=self.user, name="Sarapan")
+        SavedRecipe.objects.create(category=self.category, recipe_id=1, name="Chicken Curry", image="https://x.test/a.jpg", ingredients=["Chicken", "Rice"])
+        SavedRecipe.objects.create(category=self.category, recipe_id=2, name="Corba", image="https://x.test/b.jpg", ingredients=["Lentils", "Onion"])
+
+    def search(self, category_id=None, **params):
+        return self.client.get(reverse("bookmarks:category_recipes", args=[category_id or self.category.id]), params)
+
+    def ids(self, response):
+        return [r["id"] for r in response.json()["recipes"]]
+
+    def test_search_by_name_and_ingredient(self):
+        self.assertEqual(self.ids(self.search(q="curry")), [1])
+        self.assertEqual(self.ids(self.search(q="ONION")), [2])
+
+    def test_empty_query_returns_everything(self):
+        response = self.search(q="  ")
+        self.assertEqual(response.json()["count"], 2)
+
+    def test_no_results(self):
+        self.assertEqual(self.search(q="sushi").json()["count"], 0)
+
+    def test_pagination(self):
+        for i in range(3, 11):
+            SavedRecipe.objects.create(category=self.category, recipe_id=i, name=f"Resep {i}", image="https://x.test/c.jpg")
+        data = self.search(page=2).json()
+        self.assertEqual((data["num_pages"], data["page"], len(data["recipes"])), (2, 2, 2))
+
+    def test_page_renders_pagination_meta(self):
+        response = self.client.get(reverse("bookmarks:show_bookmarks"), {"category": self.category.id})
+        self.assertEqual(response.context["num_pages"], 1)
+        self.assertContains(response, 'id="recipe-card-template"')
+
+    def test_other_users_category(self):
+        foreign = Category.objects.create(user=self.other, name="Rahasia")
+        self.assertEqual(self.search(foreign.id).status_code, 404)
+
+    def test_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.search().status_code, 401)

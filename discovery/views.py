@@ -88,6 +88,23 @@ def _meals_with_ingredient(name):
     return _fetch_json("filter.php", i=name.replace(" ", "_")).get("meals") or []
 
 
+def _paginate(items, page_number):
+    paginator = Paginator(items, RECIPES_PER_PAGE)
+    page_obj = paginator.get_page(page_number)
+    page_range = [
+        None if number == Paginator.ELLIPSIS else number
+        for number in paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1)
+    ]
+    return page_obj, {
+        "page": page_obj.number,
+        "num_pages": paginator.num_pages,
+        "count": paginator.count,
+        "has_previous": page_obj.has_previous(),
+        "has_next": page_obj.has_next(),
+        "page_range": page_range,
+    }
+
+
 def _search_recipes(query, ingredients, page_number, fridge_names):
     results = []
     full_meals = {}
@@ -112,8 +129,7 @@ def _search_recipes(query, ingredients, page_number, fridge_names):
         source = results if query else meals_per_ingredient[0]
         results = [meal for meal in source if meal["idMeal"] in allowed]
 
-    paginator = Paginator(results, RECIPES_PER_PAGE)
-    page_obj = paginator.get_page(page_number)
+    page_obj, page_meta = _paginate(results, page_number)
 
     def get_details(meal):
         return full_meals.get(meal["idMeal"]) or _lookup_meal(meal["idMeal"])
@@ -126,20 +142,10 @@ def _search_recipes(query, ingredients, page_number, fridge_names):
         for meal, details in zip(page_obj.object_list, detailed_meals)
     ]
 
-    page_range = [
-        None if number == Paginator.ELLIPSIS else number
-        for number in paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1)
-    ]
-
     return {
         "query": query,
         "ingredients": ingredients,
-        "page": page_obj.number,
-        "num_pages": paginator.num_pages,
-        "count": paginator.count,
-        "has_previous": page_obj.has_previous(),
-        "has_next": page_obj.has_next(),
-        "page_range": page_range,
+        **page_meta,
         "recipes": recipes,
     }
 

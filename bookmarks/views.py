@@ -5,13 +5,14 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
 
-from discovery.views import _capitalize_words, _extract_ingredients, _lookup_meal
+from discovery.views import _capitalize_words, _extract_ingredients, _lookup_meal, _paginate
 from fridge.views import api_login_required, read_json
 
 from .models import Category, SavedRecipe, default_category
 
 NAME_MAX_LENGTH = Category._meta.get_field("name").max_length
 MAX_CATEGORIES_PER_USER = 50
+MAX_QUERY_LENGTH = 100
 
 
 def _serialize_category(category):
@@ -25,6 +26,24 @@ def _serialize_saved_recipe(saved):
         "image": saved.image,
         "ingredients": saved.ingredients,
         "ingredient_count": len(saved.ingredients),
+    }
+
+
+def _search_saved_recipes(category, query, page_number):
+    recipes = list(category.recipes.all())
+    if query:
+        # Cocokkan nama resep atau salah satu bahannya; difilter di Python karena icontains pada
+        # JSONField di SQLite membandingkan teks JSON yang sudah di-escape
+        needle = query.casefold()
+        recipes = [
+            r for r in recipes
+            if needle in r.name.casefold() or any(needle in i.casefold() for i in r.ingredients)
+        ]
+    page_obj, page_meta = _paginate(recipes, page_number)
+    return {
+        "query": query,
+        **page_meta,
+        "recipes": [_serialize_saved_recipe(r) for r in page_obj.object_list],
     }
 
 
@@ -58,8 +77,16 @@ def show_bookmarks(request):
         "categories": categories,
         "selected_category": selected,
         "default_category": fallback,
-        "recipes": [_serialize_saved_recipe(r) for r in selected.recipes.all()],
+        **_search_saved_recipes(selected, "", 1),
     })
+
+
+@require_GET
+@api_login_required
+def category_recipes(request, pk):
+    category = get_object_or_404(Category, pk=pk, user=request.user)
+    query = request.GET.get("q", "").strip()[:MAX_QUERY_LENGTH]
+    return JsonResponse(_search_saved_recipes(category, query, request.GET.get("page")))
 
 
 @require_POST
