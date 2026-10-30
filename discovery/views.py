@@ -8,6 +8,7 @@ from urllib.request import urlopen
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
+from bookmarks.models import SavedRecipe
 from comments.views import comment_section_context
 from fridge.models import InventoryItem
 from fridge.views import api_login_required
@@ -180,7 +181,16 @@ def recipes_api(request):
     query = request.GET.get("q", "").strip()
     ingredients = [i.strip() for i in request.GET.getlist("ingredient") if i.strip()][:MAX_INGREDIENTS]
     fridge_names = _fridge_ingredients(request.user)
-    return JsonResponse(_search_recipes(query, ingredients, request.GET.get("page"), fridge_names))
+    data = _search_recipes(query, ingredients, request.GET.get("page"), fridge_names)
+
+    # Satu query untuk menandai resep yang sudah disimpan di kategori mana pun
+    saved_ids = set(
+        SavedRecipe.objects.filter(category__user=request.user, recipe_id__in=[r["id"] for r in data["recipes"]])
+        .values_list("recipe_id", flat=True)
+    )
+    for recipe in data["recipes"]:
+        recipe["bookmarked"] = int(recipe["id"]) in saved_ids
+    return JsonResponse(data)
 
 
 def show_recipe_detail(request, recipe_id):
