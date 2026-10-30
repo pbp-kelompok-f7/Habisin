@@ -40,7 +40,7 @@
          class="w-full h-[clamp(3rem,8vh,4rem)] px-5 rounded-2xl border-2 bg-transparent text-[length:clamp(1rem,2.4vh,1.125rem)] text-brand-green-dark focus-visible:outline-none focus-visible:border-brand-green focus-visible:ring-4 focus-visible:ring-brand-green/30 {% if form.errors %}border-red-400{% else %}border-border-color{% endif %}">
   {% for e in form.password.errors %}<p class="mt-1 text-sm text-[#9F2A1E]">{{ e }}</p>{% endfor %}
 </div>
-  <a href="#" class="-mt-2 mb-[clamp(0.875rem,2.6vh,1.5rem)] ml-2 inline-block text-[length:clamp(0.875rem,2vh,1rem)] text-[#7C8C80] hover:underline">Forgot password?</a>
+  <a href="{% url 'authentication:password_reset' %}" class="-mt-2 mb-[clamp(0.875rem,2.6vh,1.5rem)] ml-2 inline-block text-[length:clamp(0.875rem,2vh,1rem)] text-[#7C8C80] hover:underline">Forgot password?</a>
 
   <button type="submit" class="w-full h-[clamp(3rem,8vh,4rem)] rounded-2xl bg-brand-green hover:opacity-90 text-white text-[length:clamp(1.125rem,2.7vh,1.375rem)] font-medium cursor-pointer">Login</button>
 </form>
