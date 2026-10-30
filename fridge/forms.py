@@ -9,34 +9,34 @@ class InventoryItemForm(forms.ModelForm):
         fields = ["name", "amount", "unit", "place"]
         error_messages = {
             "name": {
-                "required": "Nama bahan wajib diisi.",
-                "max_length": "Nama bahan maksimal 80 karakter.",
+                "required": "Item name is required.",
+                "max_length": "Item name must be 80 characters or fewer.",
             },
             "amount": {
-                "required": "Jumlah wajib diisi.",
-                "invalid": "Jumlah harus berupa angka.",
-                "max_digits": "Jumlah terlalu besar.",
-                "max_whole_digits": "Jumlah terlalu besar.",
-                "max_decimal_places": "Maksimal 2 angka di belakang koma.",
+                "required": "Amount is required.",
+                "invalid": "Amount must be a number.",
+                "max_digits": "Amount is too large.",
+                "max_whole_digits": "Amount is too large.",
+                "max_decimal_places": "Use at most 2 decimal places.",
             },
             "unit": {
-                "required": "Pilih satuan.",
-                "invalid_choice": "Satuan tidak valid.",
+                "required": "Choose a unit.",
+                "invalid_choice": "Invalid unit.",
             },
             "place": {
-                "required": "Pilih lokasi penyimpanan.",
-                "invalid_choice": "Lokasi tidak valid.",
+                "required": "Choose a storage location.",
+                "invalid_choice": "Invalid location.",
             },
         }
 
     def clean_name(self):
         name = " ".join(self.cleaned_data["name"].split())
         if not name:
-            raise forms.ValidationError("Nama bahan wajib diisi.")
+            raise forms.ValidationError("Item name is required.")
         return name
 
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
         if amount <= 0:
-            raise forms.ValidationError("Jumlah harus lebih dari 0.")
+            raise forms.ValidationError("Amount must be greater than 0.")
         return amount

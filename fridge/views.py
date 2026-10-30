@@ -15,17 +15,15 @@ TAB_KEYS = {key for key, _ in TABS}
 
 
 def api_login_required(view):
-    """Seperti login_required, tapi membalas JSON 401 (bukan redirect HTML) agar bisa dibaca JavaScript."""
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse({"error": "Silakan masuk terlebih dahulu."}, status=401)
+            return JsonResponse({"error": "Please sign in first."}, status=401)
         return view(request, *args, **kwargs)
     return wrapper
 
 
 def format_amount(value):
-    """Decimal('10.00') -> '10', Decimal('0.50') -> '0.5'."""
     return format(Decimal(value).normalize(), "f")
 
 
@@ -43,7 +41,6 @@ MAX_ITEMS_PER_USER = 500
 
 
 def read_json(request):
-    """Baca body JSON berupa objek, atau None kalau tidak valid."""
     try:
         data = json.loads(request.body or b"{}")
     except ValueError:
@@ -56,7 +53,6 @@ def form_errors(form):
 
 
 def filtered_items(request):
-    """Ambil tab dan kata kunci dari query string, lalu kembalikan bahan milik user yang login."""
     tab = request.GET.get("tab", "fridge")
     if tab not in TAB_KEYS:
         tab = "fridge"
@@ -75,7 +71,7 @@ def show_fridge(request):
         "units": InventoryItem.Unit.choices,
         "tab": tab,
         "q": q,
-        "items": [serialize(i) for i in items],  # dipakai JavaScript sebagai data awal
+        "items": [serialize(i) for i in items],
     })
 
 
@@ -91,11 +87,11 @@ def item_list(request):
 def item_create(request):
     data = read_json(request)
     if data is None:
-        return JsonResponse({"error": "Data tidak valid."}, status=400)
+        return JsonResponse({"error": "Invalid data."}, status=400)
 
     if InventoryItem.objects.filter(user=request.user).count() >= MAX_ITEMS_PER_USER:
         return JsonResponse(
-            {"error": f"Maksimal {MAX_ITEMS_PER_USER} bahan. Hapus beberapa bahan dulu."}, status=400
+            {"error": f"You can store up to {MAX_ITEMS_PER_USER} items. Delete some items first."}, status=400
         )
 
     form = InventoryItemForm(data)
@@ -103,7 +99,7 @@ def item_create(request):
         return JsonResponse({"errors": form_errors(form)}, status=400)
 
     item = form.save(commit=False)
-    item.user = request.user  # pemilik selalu user yang login, tidak diambil dari input
+    item.user = request.user
     item.save()
     return JsonResponse({"item": serialize(item)}, status=201)
 
@@ -114,7 +110,7 @@ def item_update(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk, user=request.user)
     data = read_json(request)
     if data is None:
-        return JsonResponse({"error": "Data tidak valid."}, status=400)
+        return JsonResponse({"error": "Invalid data."}, status=400)
 
     form = InventoryItemForm(data, instance=item)
     if not form.is_valid():
