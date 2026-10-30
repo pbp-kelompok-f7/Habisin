@@ -5,8 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-
+from saved_meals.models import SavedMeal
 from .forms import LoginForm, ProfileForm, RegisterForm
+from django.db.models import Sum
 
 
 def login_view(request):
@@ -48,13 +49,14 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     user = request.user
-    # TODO: ganti data dummy activity dan meals_made dengan data dari database
+    meals_made = SavedMeal.objects.filter(user=user, status="HISTORY").aggregate(n=Sum("portions_saved"))["n"] or 0
+
     activity = [("Mon", 2), ("Tue", 1), ("Wed", 4), ("Thu", 3), ("Fri", 0), ("Sat", 0), ("Sun", 0)]
     context = {
         "profile": {"name": user.get_full_name() or user.username, "username": user.username},
         "activity": [{"day": d, "count": c, "height": c * 40} for d, c in activity],
         "activity_range": "22 Sept - 29 Sept",
-        "meals_made": 10,
+        "meals_made": meals_made,
         "since": user.date_joined.year,
     }
     return render(request, "authentication/profile.html", context)

@@ -3,11 +3,10 @@
 
 {% block title %}Profile | Habisin{% endblock %}
 
-{# Header khusus halaman profile, tanpa footer #}
 {% block navbar %}
 <header class="border-b border-border-color">
   <div class="max-w-[1200px] mx-auto px-4 md:px-0 h-[90px] flex items-center justify-between">
-    <a href="{% url 'home:show_home' %}">
+    <a href="{% url 'discovery:show_discovery' %}" aria-label="Ke halaman Resep">
       <img src="{% static 'svg/logo.svg' %}" alt="Habisin" class="h-14">
     </a>
     <div class="flex items-center gap-4">
@@ -25,19 +24,10 @@
 {% block content %}
 <div class="max-w-[1200px] mx-auto px-4 md:px-0 pb-12 text-brand-green-dark">
 
-  <!-- Banner -->
   <div class="h-44 md:h-[300px] bg-[#cdbfa6] overflow-hidden">
     <img src="{% static 'img/Banner.png' %}" alt="" class="w-full h-full object-cover" onerror="this.remove()">
   </div>
-  {% if messages %}
-  <div class="px-4 md:px-9 pt-4">
-    {% for message in messages %}
-    <div role="status" class="rounded-2xl border border-[#B7D9BF] bg-[#EAF6ED] px-4 py-3 text-sm text-[#1F5C33]">{{ message }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
-  <!-- Avatar + nama -->
   <div class="px-4 md:px-9">
     <div class="relative -mt-24 size-40 md:size-[200px] rounded-full border-4 border-white bg-brand-green overflow-hidden grid place-items-center">
       {% if user.profile.photo %}
@@ -50,7 +40,6 @@
     <p class="text-lg font-medium text-[#7C8C80]">@{{ profile.username }}</p>
   </div>
 
-  <!-- Statistik -->
   <div class="mt-14 grid md:grid-cols-[2fr_1fr] gap-5">
 
     <section class="rounded-xl bg-[#F6DDB6] p-6">
@@ -76,4 +65,54 @@
 
   </div>
 </div>
+
+<script>
+  function showToast(text, duration = 2000) {
+    const toast = document.createElement('div');
+    toast.setAttribute('role', 'status');
+    toast.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+      <span></span>`;
+    toast.querySelector('span').textContent = text;
+
+    Object.assign(toast.style, {
+      position: 'fixed',
+      top: '20px',
+      left: '50%',
+      zIndex: '9999',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 16px',
+      borderRadius: '9999px',
+      background: '#344C3D',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      boxShadow: '0 4px 12px rgba(0,0,0,.2)',
+      opacity: '0',
+      transform: 'translate(-50%, -8px)',
+      transition: 'opacity .3s, transform .3s',
+    });
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translate(-50%, 0)';
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translate(-50%, -8px)';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  const flashMessages = [{% for message in messages %}"{{ message|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+  flashMessages.forEach((msg, i) => setTimeout(() => showToast(msg), i * 150));
+</script>
 {% endblock content %}
