@@ -43,17 +43,41 @@
   <div class="mt-14 grid md:grid-cols-[2fr_1fr] gap-5">
 
     <section class="rounded-xl bg-[#F6DDB6] p-6">
-      <p class="text-3xl font-bold text-brand-green">Activity</p>
-      <p class="text-lg font-medium text-[#7C8C80]">{{ activity_range }}</p>
+      <p class="text-3xl font-bold text-brand-green">Quick access</p>
+      <p class="text-lg font-medium text-[#7C8C80]">Jump back into your kitchen</p>
 
-      <div class="mt-4 flex items-end justify-between gap-2 h-[230px]">
-        {% for d in activity %}
-        <div class="flex-1 flex flex-col items-center justify-end gap-1">
-          {% if d.count %}<span class="text-xs text-[#7C8C80]">{{ d.count }}</span>{% endif %}
-          <div class="w-10 md:w-12 rounded-t-xl bg-[#FFA64D]" style="height: {{ d.height }}px"></div>
-          <span class="mt-1 text-base md:text-xl text-[#6E7F66]">{{ d.day }}</span>
-        </div>
-        {% endfor %}
+      <div class="mt-6 grid sm:grid-cols-2 gap-4">
+        <a href="{% url 'saved_meals:show_saved_meals' %}" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Saved Meals</p>
+            <p class="text-sm text-[#7C8C80]">Your saved menus and cooking history</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="/kulkas/" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Kulkas</p>
+            <p class="text-sm text-[#7C8C80]">Check what is in your fridge</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="{% url 'discovery:show_discovery' %}" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Recipes</p>
+            <p class="text-sm text-[#7C8C80]">Find something to cook today</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a href="/bookmarks/" class="rounded-xl bg-white p-5 flex items-center justify-between hover:opacity-90 transition">
+          <div>
+            <p class="text-xl font-bold text-brand-green">Bookmarks</p>
+            <p class="text-sm text-[#7C8C80]">Recipes you want to try later</p>
+          </div>
+          <span class="text-2xl text-brand-green" aria-hidden="true">&rarr;</span>
+        </a>
       </div>
     </section>
 
@@ -65,6 +89,8 @@
 
   </div>
 </div>
+
+<div id="flash-data" hidden>{% for message in messages %}<span>{{ message }}</span>{% endfor %}</div>
 
 <script>
   function showToast(text, duration = 2000) {
@@ -112,7 +138,8 @@
     }, duration);
   }
 
-  const flashMessages = [{% for message in messages %}"{{ message|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
-  flashMessages.forEach((msg, i) => setTimeout(() => showToast(msg), i * 150));
+  document.querySelectorAll('#flash-data span').forEach((el, i) => {
+    setTimeout(() => showToast(el.textContent), i * 150);
+  });
 </script>
 {% endblock content %}
