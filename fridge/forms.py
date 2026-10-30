@@ -3,6 +3,10 @@ from django import forms
 from .models import InventoryItem
 
 
+def capitalize_words(value):
+    return " ".join(word.capitalize() for word in value.split())
+
+
 class InventoryItemForm(forms.ModelForm):
     class Meta:
         model = InventoryItem
@@ -29,10 +33,25 @@ class InventoryItemForm(forms.ModelForm):
             },
         }
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
     def clean_name(self):
-        name = " ".join(self.cleaned_data["name"].split())
+        name = capitalize_words(self.cleaned_data["name"])
         if not name:
             raise forms.ValidationError("Item name is required.")
+
+        if self.user is not None:
+            duplicates = InventoryItem.objects.filter(user=self.user, name__iexact=name)
+            if self.instance.pk:
+                duplicates = duplicates.exclude(pk=self.instance.pk)
+            existing = duplicates.first()
+            if existing:
+                raise forms.ValidationError(
+                    f"{existing.name} is already in your {existing.get_place_display()}. "
+                    "Use a different name or update the existing item."
+                )
         return name
 
     def clean_amount(self):
