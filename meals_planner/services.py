@@ -1,17 +1,24 @@
-"""Account-owned weekly plans and recipe snapshots, independent of browser sessions."""
+"""Account-owned weekly plans and TheMealDB recipe snapshots, independent of browser sessions."""
 
 import re
 from datetime import date, timedelta
 from urllib.parse import urlsplit
 
-from django.db import transaction
 from django.templatetags.static import static
 
+from bookmarks.models import SavedRecipe
+from discovery.views import (
+    _capitalize_words as capitalize_words,
+    _extract_ingredients as extract_ingredients,
+    _lookup_meal as lookup_meal,
+    _preview_recipes as preview_recipes,
+    _search_recipes as search_recipes,
+)
 from saved_meals.models import SavedMeal
 
-from .catalog import RECIPES
 from .models import PlannedMeal
 
+MEALDB_CHOICE = re.compile(r"mealdb:([1-9][0-9]{0,9})")
 MONTHS = (
     "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember",
@@ -44,7 +51,7 @@ def week_label(week):
     return f"{week.day}–{end.day} {MONTHS[end.month]} {end.year}"
 
 
-def saved_image(value):
+def recipe_image(value):
     try:
         parsed = urlsplit(value or "")
         if parsed.scheme in ("https", "http") and parsed.netloc:
@@ -54,52 +61,86 @@ def saved_image(value):
     return static("home/img/logo2.svg")
 
 
-def saved_recipe(meal):
-    return {
-        "id": f"saved:{meal.pk}",
-        "name": meal.recipe_name,
-        "minutes": meal.cooking_time_minutes,
-        "image_url": saved_image(meal.image_url),
-        # SavedMeal currently has no ingredient names or quantities.
-        "ingredients": [],
-        "ingredients_known": False,
-        "source_label": "Resep tersimpan",
-        "is_example": False,
-        "selectable": True,
-    }
+def unique_ingredients(names):
+    unique, seen = [], set()
+    for name in names:
+        if name and name.casefold() not in seen:
+            seen.add(name.casefold())
+            unique.append(name)
+    return unique
 
 
-def starter_recipe(key):
-    recipe = RECIPES[key]
+def saved_recipe_ids(user, recipe_ids):
+    # "Tersimpan" covers both the Saved Meals list and any bookmark category.
+    ids = [int(recipe_id) for recipe_id in recipe_ids]
+    saved = set(
+        SavedMeal.objects.filter(user=user, status="SAVED", recipe_id__in=ids).values_list("recipe_id", flat=True)
+    )
+    saved |= set(SavedRecipe.objects.filter(category__user=user, recipe_id__in=ids).values_list("recipe_id", flat=True))
+    return {str(recipe_id) for recipe_id in saved}
+
+
+def mealdb_choice(recipe, saved):
     return {
-        "id": key,
+        "id": f"mealdb:{recipe['id']}",
         "name": recipe["name"],
-        "minutes": recipe["minutes"],
-        "image_url": static(recipe["image"]),
-        "ingredients": list(recipe["ingredients"]),
-        "ingredients_known": True,
-        "source_label": "Resep contoh",
-        "is_example": True,
-        "selectable": True,
+        "image_url": recipe_image(recipe["image"]),
+        "ingredients": unique_ingredients(recipe["ingredients"]),
+        "saved": saved,
     }
 
 
-def recipe_choices(user):
-    meals = SavedMeal.objects.filter(user=user, status="SAVED").order_by("-created_at", "-pk")
-    return [saved_recipe(meal) for meal in meals] + [starter_recipe(key) for key in RECIPES]
+def saved_choices(user):
+    """The user's saved MealDB recipes, newest first, built from stored copies to avoid API calls."""
+    recipes = {}
+    meals = SavedMeal.objects.filter(user=user, status="SAVED", recipe_id__isnull=False).order_by("-created_at", "-pk")
+    for meal in meals:
+        recipes.setdefault(str(meal.recipe_id), {
+            "id": meal.recipe_id,
+            "name": meal.recipe_name,
+            "image": meal.image_url,
+            "ingredients": [name.strip() for name in meal.ingredients.split(",")],
+        })
+    for bookmark in SavedRecipe.objects.filter(category__user=user):
+        recipes.setdefault(str(bookmark.recipe_id), {
+            "id": bookmark.recipe_id,
+            "name": bookmark.name,
+            "image": bookmark.image,
+            "ingredients": bookmark.ingredients,
+        })
+    return [mealdb_choice(recipe, True) for recipe in recipes.values()]
+
+
+def recipe_choices(user, query=""):
+    if not query:
+        choices = saved_choices(user)
+        shown = {choice["id"] for choice in choices}
+        return choices + [
+            mealdb_choice(recipe, False) for recipe in preview_recipes() if f"mealdb:{recipe['id']}" not in shown
+        ]
+    recipes = search_recipes(query, [], 1, None)["recipes"]
+    saved = saved_recipe_ids(user, [recipe["id"] for recipe in recipes])
+    return [mealdb_choice(recipe, recipe["id"] in saved) for recipe in recipes]
+
+
+def mealdb_recipe(recipe_id):
+    meal = lookup_meal(recipe_id)
+    if not meal:
+        return None
+    return {
+        "name": capitalize_words(meal["strMeal"]),
+        "image_url": recipe_image(meal.get("strMealThumb")),
+        "ingredients": unique_ingredients(capitalize_words(name) for name in extract_ingredients(meal)),
+    }
 
 
 def planned_recipe(meal):
     return {
         "id": f"planned:{meal.pk}",
         "name": meal.recipe_name,
-        "minutes": meal.minutes,
         "image_url": meal.image_url,
         "ingredients": meal.ingredients,
         "ingredients_known": meal.ingredients_known,
-        "source_label": meal.get_source_display(),
-        "is_example": meal.source == PlannedMeal.Source.STARTER,
-        "selectable": False,
     }
 
 
@@ -128,30 +169,18 @@ def week_state(user, week, today):
         "total": len(planned),
         "ingredients": ingredients,
         "missing_ingredients": sum(not meal.ingredients_known for meal in planned),
-        "recipes": recipe_choices(user) + [planned_recipe(meal) for meal in planned],
+        "recipes": [planned_recipe(meal) for meal in planned],
     }
 
 
-@transaction.atomic
 def set_meal(user, meal_date, slot, recipe_id):
     if recipe_id == "":
         PlannedMeal.objects.filter(user=user, date=meal_date, slot=slot).delete()
         return
 
-    source_meal = None
-    if recipe_id in RECIPES:
-        recipe = starter_recipe(recipe_id)
-        source = PlannedMeal.Source.STARTER
-    elif re.fullmatch(r"saved:[1-9][0-9]{0,18}", recipe_id):
-        source_id = int(recipe_id.partition(":")[2])
-        if source_id > 9223372036854775807:
-            raise ValueError("Resep tidak tersedia. Silakan pilih resep lain.")
-        source_meal = SavedMeal.objects.select_for_update().filter(pk=source_id, user=user, status="SAVED").first()
-        if source_meal is None:
-            raise ValueError("Resep tidak tersedia. Silakan pilih resep lain.")
-        recipe = saved_recipe(source_meal)
-        source = PlannedMeal.Source.SAVED
-    else:
+    match = MEALDB_CHOICE.fullmatch(recipe_id)
+    recipe = mealdb_recipe(match[1]) if match else None
+    if recipe is None:
         raise ValueError("Resep tidak tersedia. Silakan pilih resep lain.")
 
     PlannedMeal.objects.update_or_create(
@@ -159,13 +188,13 @@ def set_meal(user, meal_date, slot, recipe_id):
         date=meal_date,
         slot=slot,
         defaults={
-            "saved_meal": source_meal,
-            "source": source,
+            "saved_meal": None,
+            "source": PlannedMeal.Source.MEALDB,
             "source_key": recipe_id,
             "recipe_name": recipe["name"],
             "image_url": recipe["image_url"],
-            "minutes": recipe["minutes"],
+            "minutes": 0,
             "ingredients": recipe["ingredients"],
-            "ingredients_known": recipe["ingredients_known"],
+            "ingredients_known": True,
         },
     )
