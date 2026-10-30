@@ -3,6 +3,9 @@ from .models import SavedMeal
 
 
 class SavedMealForm(forms.ModelForm):
+    calories_kcal = forms.IntegerField(min_value=0, required=False)
+    protein_grams = forms.IntegerField(min_value=0, required=False)
+
     class Meta:
         model = SavedMeal
         fields = [

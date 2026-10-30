@@ -141,10 +141,10 @@
       </form>
 
       {% if user.is_authenticated %}
-      <button id="add-meal-btn" type="button" onclick="openAddModal()" class="bg-[#EDD9B8] hover:bg-[#e4cca7] text-[#344C3D] font-bold px-5 rounded-full text-sm shadow-sm transition flex items-center gap-1.5 cursor-pointer" style="height: 38px;">
+      <a id="add-meal-btn" href="{% url 'discovery:show_discovery' %}" class="bg-[#EDD9B8] hover:bg-[#e4cca7] text-[#344C3D] font-bold px-5 rounded-full text-sm shadow-sm transition flex items-center gap-1.5 cursor-pointer" style="height: 38px;">
         <span class="text-base font-extrabold leading-none">+</span>
         <span>Add</span>
-      </button>
+      </a>
       {% endif %}
     </div>
   </section>
@@ -167,9 +167,10 @@
           </div>
 
           <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-2 border-t border-gray-100">
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center gap-3">
               <span>{{ meal.cooking_time_minutes }} menit</span>
               <span>{{ meal.calories_kcal }} kkal</span>
+              <span>{{ meal.protein_grams }}gr protein</span>
             </div>
 
             {% if user.is_authenticated %}
@@ -214,33 +215,6 @@
   {% include 'saved_meals/history.html' %}
 </main>
 
-<div id="add-meal-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
-  <div class="bg-white rounded-3xl p-6 w-full max-w-md mx-4 border border-[#E9DFCE] shadow-2xl flex flex-col gap-4">
-    <div class="flex items-center justify-between">
-      <h3 class="font-heading font-extrabold text-xl text-[#1E2922]">Tambah Menu</h3>
-      <button type="button" onclick="closeAddModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl">&times;</button>
-    </div>
-
-    <form id="add-meal-form" onsubmit="submitAddMeal(event)" class="flex flex-col gap-3">
-      <input name="recipe_name" type="text" required placeholder="Nama Menu" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-      <input name="ingredients" type="text" required placeholder="Bahan-bahan (pisahkan koma)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-      <div class="grid grid-cols-2 gap-3">
-        <input name="cooking_time_minutes" type="number" min="1" value="25" required placeholder="Waktu (menit)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-        <input name="portions_saved" type="number" min="1" value="2" required placeholder="Porsi" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-        <input name="calories_kcal" type="number" min="10" value="350" required placeholder="Kalori (kkal)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-        <input name="protein_grams" type="number" min="0" value="15" required placeholder="Protein (gr)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-      </div>
-      <input name="image_url" type="url" placeholder="URL Gambar (opsional)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-      <textarea name="notes" rows="2" placeholder="Catatan (opsional)" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl"></textarea>
-
-      <div class="flex justify-end gap-2 mt-2">
-        <button type="button" onclick="closeAddModal()" class="px-4 py-2 rounded-full border border-gray-300 text-sm font-bold">Batal</button>
-        <button type="submit" class="px-5 py-2 rounded-full bg-[#344C3D] text-white text-sm font-bold">Simpan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script>
   const BASE_URL = "{% url 'saved_meals:show_saved_meals' %}";
 
@@ -275,30 +249,6 @@
     document.getElementById('metric-finished').textContent = m.recipes_finished;
     document.getElementById('metric-protein').textContent = m.total_protein + 'gr';
     document.getElementById('metric-calories').textContent = m.total_calories + 'kkal';
-  }
-
-  function openAddModal() {
-    document.getElementById('add-meal-modal').classList.remove('hidden');
-  }
-
-  function closeAddModal() {
-    document.getElementById('add-meal-modal').classList.add('hidden');
-  }
-
-  async function submitAddMeal(e) {
-    e.preventDefault();
-    const form = document.getElementById('add-meal-form');
-    const response = await fetch(`${BASE_URL}add/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCsrfToken() },
-      body: new FormData(form),
-    });
-    const data = await response.json();
-    if (data.success) {
-      window.location.reload();
-    } else {
-      alert(data.error || 'Gagal menambah menu.');
-    }
   }
 
   async function markMealDone(mealId) {
@@ -340,6 +290,14 @@
     if (data.success) {
       document.getElementById(`history-note-${mealId}`).textContent = data.notes || '-';
       document.getElementById(`history-portions-${mealId}`).textContent = data.portions_saved;
+      if (data.calories_kcal !== undefined) {
+        const calEl = document.getElementById(`history-calories-${mealId}`);
+        if (calEl) calEl.textContent = data.calories_kcal;
+      }
+      if (data.protein_grams !== undefined) {
+        const protEl = document.getElementById(`history-protein-${mealId}`);
+        if (protEl) protEl.textContent = data.protein_grams;
+      }
       const row = document.getElementById(`history-row-${mealId}`);
       const editBtn = row?.querySelector('button[data-meal-id]');
       if (editBtn) {

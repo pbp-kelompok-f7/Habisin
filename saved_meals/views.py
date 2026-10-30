@@ -7,34 +7,7 @@ from django.db.models import Sum, Q
 from discovery.views import _capitalize_words, _extract_ingredients, _lookup_meal
 from .models import SavedMeal
 from .forms import SavedMealForm, HistoryNoteForm
-
-
-def _seed_default_meals(user):
-    if not SavedMeal.objects.filter(status='HISTORY', user=user).exists():
-        history_seeds = [
-            (102, 'Ayam Bakar Madu', 40, 3, 0.6, 11, 900, 'Ayam, Madu, air', 'Enak bangeett, bakal bikin lagi', 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=800&q=80'),
-            (101, 'Sup Ayam Wortel Kentang', 30, 3, 0.5, 8, 750, 'Ayam, Wortel, Kentang', 'Kalo dimakan pas lagi dingin enak', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
-            (103, 'Omelet Bayam Keju', 15, 1, 0.2, 4, 350, 'Telur, Bayam, Keju', 'Bagus buat sarapan masaknya cepet', 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80'),
-        ]
-        for rid, name, mins, portions, kg, prot, cal, ing, note, img in history_seeds:
-            SavedMeal.objects.create(
-                user=user, recipe_id=rid, recipe_name=name, image_url=img,
-                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
-                protein_grams=prot, calories_kcal=cal, ingredients=ing, notes=note, status='HISTORY'
-            )
-
-    if not SavedMeal.objects.filter(status='SAVED', user=user).exists():
-        saved_seeds = [
-            (101, 'Sup Ayam Wortel Kentang', 30, 2, 0.4, 10, 400, 'Ayam, Wortel, Kentang', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
-            (104, 'Nasi Goreng Sayur Sisa Kulkas', 20, 2, 0.4, 14, 480, 'Nasi, Wortel, Telur, Daun Bawang', 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80'),
-            (105, 'Tumis Buncis & Telur Orak-Arik', 15, 2, 0.3, 12, 280, 'Buncis, Telur, Bawang Merah, Bawang Putih', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80'),
-        ]
-        for rid, name, mins, portions, kg, prot, cal, ing, img in saved_seeds:
-            SavedMeal.objects.create(
-                user=user, recipe_id=rid, recipe_name=name, image_url=img,
-                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
-                protein_grams=prot, calories_kcal=cal, ingredients=ing, status='SAVED'
-            )
+from .openfoodfacts import estimate_meal_nutrition, scale_nutrition
 
 
 def _get_meals(request, status, apply_filter=True):
@@ -78,9 +51,10 @@ def _compute_metrics(history_qs):
         protein=Sum('protein_grams'),
         calories=Sum('calories_kcal'),
     )
+    weight = agg['weight']
     return {
         'total_portions': agg['portions'] or 0,
-        'total_weight': round(agg['weight'] or 0.0, 1),
+        'total_weight': round(weight, 1) if weight else 0,
         'recipes_finished': history_qs.count(),
         'total_protein': agg['protein'] or 0,
         'total_calories': agg['calories'] or 0,
@@ -90,8 +64,6 @@ def _compute_metrics(history_qs):
 @login_required
 @ensure_csrf_cookie
 def show_saved_meals(request):
-    _seed_default_meals(request.user)
-
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
     metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
@@ -100,7 +72,6 @@ def show_saved_meals(request):
         **metrics,
         'saved_meals': saved_meals,
         'history_meals': history_meals,
-        'meal_form': SavedMealForm(),
         'note_form': HistoryNoteForm(),
         'q': request.GET.get('q', ''),
         'time_filter': request.GET.get('time_filter', ''),
@@ -112,8 +83,6 @@ def show_saved_meals(request):
 @login_required
 @require_GET
 def saved_meals_json(request):
-    _seed_default_meals(request.user)
-
     saved_meals = _get_meals(request, 'SAVED')
     history_meals = _get_meals(request, 'HISTORY')
     metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
@@ -127,6 +96,51 @@ def saved_meals_json(request):
 
 
 @login_required
+def save_recipe(request, recipe_id):
+    meal_data = _lookup_meal(recipe_id)
+    if meal_data:
+        recipe_name = _capitalize_words(meal_data.get('strMeal') or 'Resep Pilihan')
+        image_url = meal_data.get('strMealThumb') or ''
+        ingredients_list = [_capitalize_words(i) for i in _extract_ingredients(meal_data)]
+        ingredients_str = ', '.join(ingredients_list)
+    else:
+        recipe_name = request.POST.get('recipe_name') or f'Resep #{recipe_id}'
+        image_url = request.POST.get('image_url') or ''
+        ingredients_str = request.POST.get('ingredients') or ''
+
+    nutrition = estimate_meal_nutrition(ingredients_str, portions=1)
+
+    existing = SavedMeal.objects.filter(
+        user=request.user,
+        status='SAVED',
+        recipe_id=recipe_id,
+    ).first()
+
+    if existing:
+        existing.portions_saved += 1
+        existing.ingredients_saved_kg = round(existing.portions_saved * 0.2, 1)
+        existing.calories_kcal += nutrition['calories_kcal']
+        existing.protein_grams += nutrition['protein_grams']
+        existing.save()
+    else:
+        SavedMeal.objects.create(
+            user=request.user,
+            recipe_id=recipe_id,
+            recipe_name=recipe_name,
+            image_url=image_url,
+            cooking_time_minutes=30,
+            portions_saved=1,
+            ingredients_saved_kg=0.2,
+            calories_kcal=nutrition['calories_kcal'],
+            protein_grams=nutrition['protein_grams'],
+            ingredients=ingredients_str,
+            status='SAVED',
+        )
+
+    return redirect('saved_meals:show_saved_meals')
+
+
+@login_required
 @require_POST
 def add_saved_meal(request):
     form = SavedMealForm(request.POST)
@@ -134,7 +148,18 @@ def add_saved_meal(request):
         meal = form.save(commit=False)
         meal.user = request.user
         meal.status = 'SAVED'
-        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        portions = meal.portions_saved or 1
+        meal.ingredients_saved_kg = round(portions * 0.2, 1)
+
+        calories_val = form.cleaned_data.get('calories_kcal')
+        protein_val = form.cleaned_data.get('protein_grams')
+        if not calories_val or protein_val is None:
+            nutrition = estimate_meal_nutrition(meal.ingredients or meal.recipe_name, portions=portions)
+            if not calories_val:
+                meal.calories_kcal = nutrition['calories_kcal']
+            if protein_val is None:
+                meal.protein_grams = nutrition['protein_grams']
+
         meal.save()
         return JsonResponse({'success': True, 'meal': meal.to_dict()}, status=201)
 
@@ -199,11 +224,20 @@ def mark_meal_done(request, meal_id):
 @require_POST
 def edit_history_note(request, meal_id):
     history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY', user=request.user)
+    old_portions = history_meal.portions_saved or 1
+    old_calories = history_meal.calories_kcal
+    old_protein = history_meal.protein_grams
+
     form = HistoryNoteForm(request.POST, instance=history_meal)
 
     if form.is_valid():
         meal = form.save(commit=False)
-        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        new_portions = meal.portions_saved or 1
+        meal.ingredients_saved_kg = round(new_portions * 0.2, 1)
+        if new_portions != old_portions:
+            meal.calories_kcal, meal.protein_grams = scale_nutrition(
+                old_calories, old_protein, old_portions, new_portions
+            )
         meal.save()
         metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
         return JsonResponse({
@@ -211,6 +245,8 @@ def edit_history_note(request, meal_id):
             'meal_id': meal.id,
             'notes': meal.notes,
             'portions_saved': meal.portions_saved,
+            'calories_kcal': meal.calories_kcal,
+            'protein_grams': meal.protein_grams,
             'metrics': metrics,
         })
 
