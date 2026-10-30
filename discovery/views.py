@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from comments.views import comment_section_context
 from fridge.models import InventoryItem
@@ -35,6 +35,18 @@ def _extract_ingredients(meal):
             ingredients.append(ingredient)
     return ingredients
 
+def _extract_ingredient_measures(meal):
+    items = []
+    for i in range(1, 21):
+        ingredient = (meal.get(f"strIngredient{i}") or "").strip()
+        if ingredient:
+            measure = (meal.get(f"strMeasure{i}") or "").strip()
+            items.append({"name": _capitalize_words(ingredient), "measure": measure})
+    return items
+
+def _extract_instructions(meal):
+    lines = (meal.get("strInstructions") or "").splitlines()
+    return [line.strip() for line in lines if line.strip()]
 
 def _capitalize_words(text):
     return " ".join(word[:1].upper() + word[1:] for word in text.split(" "))
@@ -153,6 +165,22 @@ def recipes_api(request):
 
 
 def show_recipe_detail(request, recipe_id):
-    context = {'recipe_id': recipe_id}
+    meal = _lookup_meal(recipe_id)
+    if not meal:
+        raise Http404("Resep tidak ditemukan")
+
+    ingredients = [_capitalize_words(i) for i in _extract_ingredients(meal)]
+    context = {
+        "recipe_id": recipe_id,
+        "recipe": {
+            "id": meal["idMeal"],
+            "name": _capitalize_words(meal["strMeal"]),
+            "image": meal["strMealThumb"],
+            "ingredients": ingredients,
+            "ingredient_count": len(ingredients),
+            "ingredient_measures": _extract_ingredient_measures(meal),
+            "instructions": _extract_instructions(meal),
+        },
+    }
     context.update(comment_section_context(request, recipe_id))
     return render(request, "discovery/recipe_detail.html", context)
