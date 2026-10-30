@@ -18,7 +18,6 @@
   const listEl = $('#item-list');
   const emptyEl = $('#empty');
   const emptyAddEl = $('#empty-add');
-  const addTopEl = $('#add-top');
   const errorEl = $('#load-error');
   const tabsEl = $('#tabs');
   const searchForm = $('#search-form');
@@ -41,12 +40,10 @@
     items: JSON.parse($('#initial-items').textContent),
   };
   let editing = null;
-  let mode = 'edit'; // 'edit' atau 'add' (dialog yang sama dipakai untuk keduanya)
-  let saveLabel = 'Simpan';
+  let mode = 'edit';
+  let saveLabel = 'Save';
   let deleting = null;
   let busy = false;
-
-  // ---------- Helper ----------
 
   function urlFor(template, id) {
     return template.replace('/0/', `/${id}/`);
@@ -74,28 +71,41 @@
   }
 
   async function api(url, { method = 'GET', body, signal } = {}) {
-    const response = await fetch(url, {
-      method,
-      signal,
-      credentials: 'same-origin',
-      headers: {
-        Accept: 'application/json',
-        'X-CSRFToken': cfg.csrf,
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        method,
+        signal,
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRFToken': cfg.csrf,
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (error) {
+      if (error.name === 'AbortError') throw error;
+      throw new Error('Could not reach the server. Make sure runserver is still running.');
+    }
 
     if (response.status === 401) {
       window.location.href = `${cfg.loginUrl}?next=${encodeURIComponent(window.location.pathname)}`;
-      throw new Error('Sesi berakhir.');
+      throw new Error('Session expired.');
     }
 
     let data = null;
-    try { data = await response.json(); } catch (_) { /* respons bukan JSON */ }
+    try { data = await response.json(); } catch (_) {}
 
     if (!response.ok) {
-      const error = new Error((data && data.error) || 'Terjadi kesalahan. Coba lagi.');
+      const hints = {
+        403: 'Your security session expired. Reload the page (Ctrl+Shift+R) and try again.',
+        404: 'API address not found. Make sure fridge/urls.py and views.py are up to date.',
+        500: 'Server error (500). Check the terminal where runserver is running.',
+      };
+      const error = new Error(
+        (data && data.error) || hints[response.status] || `Something went wrong (HTTP ${response.status}). Please try again.`
+      );
       error.status = response.status;
       error.errors = data && data.errors;
       throw error;
@@ -103,16 +113,14 @@
     return data;
   }
 
-  // ---------- Tampilan ----------
-
   function buildCard(item) {
     const node = cardTemplate.content.firstElementChild.cloneNode(true);
     node.dataset.id = item.id;
-    // textContent (bukan innerHTML) supaya nama bahan tidak bisa menyisipkan HTML
+
     $('[data-amount]', node).textContent = `${item.amount} ${item.unit}`;
     $('[data-name]', node).textContent = item.name;
     $('[data-action="edit"]', node).setAttribute('aria-label', `Update ${item.name}`);
-    $('[data-action="delete"]', node).setAttribute('aria-label', `Hapus ${item.name}`);
+    $('[data-action="delete"]', node).setAttribute('aria-label', `Delete ${item.name}`);
     return node;
   }
 
@@ -121,23 +129,16 @@
     state.items.forEach((item) => fragment.appendChild(buildCard(item)));
     listEl.replaceChildren(fragment);
 
-    const isEmpty = state.items.length === 0;
-    const emptyBecauseSearch = isEmpty && Boolean(state.q);
-
-    if (isEmpty) {
+    if (state.items.length === 0) {
       emptyEl.textContent = state.q
-        ? `Tidak ada bahan "${state.q}" di ${tabLabel()}.`
-        : `Belum ada bahan di ${tabLabel()}.`;
+        ? `No items matching "${state.q}" in ${tabLabel()}.`
+        : `No items in ${tabLabel()} yet.`;
       emptyEl.hidden = false;
+      emptyAddEl.hidden = Boolean(state.q);
     } else {
       emptyEl.hidden = true;
+      emptyAddEl.hidden = true;
     }
-
-    // Kosong (bukan karena pencarian): hanya tombol tengah yang tampil.
-    // Selain itu: hanya tombol kiri atas yang tampil.
-    const showCenterAdd = isEmpty && !emptyBecauseSearch;
-    emptyAddEl.hidden = !showCenterAdd;
-    addTopEl.style.display = showCenterAdd ? 'none' : '';
   }
 
   function syncUrl() {
@@ -148,11 +149,9 @@
     history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
   }
 
-  // ---------- Ambil data (tanpa reload halaman) ----------
-
   let controller = null;
   async function loadItems() {
-    if (controller) controller.abort(); // batalkan permintaan lama agar hasilnya tidak tertukar
+    if (controller) controller.abort();
     controller = new AbortController();
     const { signal } = controller;
 
@@ -165,14 +164,12 @@
       render();
     } catch (error) {
       if (error.name === 'AbortError') return;
-      errorEl.textContent = 'Gagal memuat bahan. Periksa koneksi lalu coba lagi.';
+      errorEl.textContent = 'Could not load items. Check your connection and try again.';
       errorEl.hidden = false;
     } finally {
       if (!signal.aborted) listEl.setAttribute('aria-busy', 'false');
     }
   }
-
-  // ---------- Pencarian ----------
 
   const runSearch = debounce(() => {
     const next = searchInput.value.trim();
@@ -189,8 +186,6 @@
     syncUrl();
     loadItems();
   });
-
-  // ---------- Tab Fridge / Freezer / Pantry ----------
 
   function setActiveTab(key) {
     state.tab = key;
@@ -210,8 +205,6 @@
     syncUrl();
     loadItems();
   });
-
-  // ---------- Tambah / Update ----------
 
   const fields = {
     name: $('#edit-name'),
@@ -237,22 +230,22 @@
   function openAdd() {
     mode = 'add';
     editing = null;
-    saveLabel = 'Tambah';
-    editTitle.textContent = 'Tambah bahan';
+    saveLabel = 'Add';
+    editTitle.textContent = 'Add item';
     editSave.textContent = saveLabel;
     clearErrors();
     fields.name.value = '';
     fields.amount.value = '';
     fields.unit.value = 'pcs';
-    fields.place.value = state.tab; // lokasi awal = tab yang sedang dibuka
+    fields.place.value = state.tab;
     editDialog.showModal();
     fields.name.focus();
   }
 
   function openEdit(item) {
     mode = 'edit';
-    saveLabel = 'Simpan';
-    editTitle.textContent = 'Update bahan';
+    saveLabel = 'Save';
+    editTitle.textContent = 'Update item';
     editSave.textContent = saveLabel;
     editing = item;
     clearErrors();
@@ -272,7 +265,7 @@
     clearErrors();
     busy = true;
     editSave.disabled = true;
-    editSave.textContent = 'Menyimpan...';
+    editSave.textContent = 'Saving...';
     const body = {
       name: fields.name.value,
       amount: fields.amount.value,
@@ -283,28 +276,29 @@
       if (mode === 'add') {
         const { item } = await api(cfg.createUrl, { method: 'POST', body });
         editDialog.close();
-        // pastikan bahan baru langsung terlihat: pindah ke tab-nya dan reset pencarian yang tidak cocok
+
         if (item.place !== state.tab) setActiveTab(item.place);
         if (state.q && !item.name.toLowerCase().includes(state.q.toLowerCase())) {
           state.q = '';
           searchInput.value = '';
         }
         syncUrl();
-        toast(`${item.name} ditambahkan.`);
+        toast(`${item.name} added.`);
       } else {
         await api(urlFor(cfg.updateUrl, editing.id), { method: 'POST', body });
         editDialog.close();
-        toast('Bahan diperbarui.');
+        toast('Item updated.');
       }
-      loadItems(); // muat ulang agar urutan, tab, dan hasil pencarian tetap sesuai
+      loadItems();
     } catch (error) {
+      console.error('[fridge] simpan gagal:', error);
       if (error.errors) {
         Object.entries(error.errors).forEach(([field, messages]) => {
           showFieldError(field in fields ? field : '__all__', messages[0]);
         });
       } else if (error.status === 404 && mode === 'edit') {
         editDialog.close();
-        toast('Bahan sudah tidak ada.');
+        toast('This item no longer exists.');
         loadItems();
       } else {
         showFieldError('__all__', error.message);
@@ -317,8 +311,6 @@
   });
 
   $('#edit-cancel').addEventListener('click', () => editDialog.close());
-
-  // ---------- Hapus ----------
 
   function openDelete(item) {
     deleting = item;
@@ -333,7 +325,7 @@
 
     busy = true;
     deleteConfirm.disabled = true;
-    deleteConfirm.textContent = 'Menghapus...';
+    deleteConfirm.textContent = 'Deleting...';
     deleteError.hidden = true;
     const target = deleting;
     try {
@@ -341,7 +333,7 @@
       state.items = state.items.filter((item) => item.id !== target.id);
       render();
       deleteDialog.close();
-      toast(`${target.name} dihapus.`);
+      toast(`${target.name} deleted.`);
     } catch (error) {
       if (error.status === 404) {
         deleteDialog.close();
@@ -353,13 +345,11 @@
     } finally {
       busy = false;
       deleteConfirm.disabled = false;
-      deleteConfirm.textContent = 'Hapus';
+      deleteConfirm.textContent = 'Delete';
     }
   });
 
   $('#delete-cancel').addEventListener('click', () => deleteDialog.close());
-
-  // ---------- Klik tombol di kartu, dialog ----------
 
   listEl.addEventListener('click', (event) => {
     const button = event.target.closest('[data-action]');
@@ -375,7 +365,6 @@
     button.addEventListener('click', openAdd);
   });
 
-  // klik area gelap di luar kotak dialog = tutup
   [editDialog, deleteDialog].forEach((dialog) => {
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close();
