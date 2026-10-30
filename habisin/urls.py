@@ -13,6 +13,7 @@ urlpatterns = [
     path('bookmarks/', include('bookmarks.urls')),
     path("auth/", include("authentication.urls")),
     path("kulkas/", include("fridge.urls")),
+    path('comments/', include('comments.urls')),
 ]
 
 if settings.DEBUG:
