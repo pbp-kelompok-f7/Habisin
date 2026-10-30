@@ -1,65 +1,207 @@
-from django.shortcuts import render
-from django.db.models import Sum
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Q
 from .models import SavedMeal
+from .forms import SavedMealForm, HistoryNoteForm
 
+
+def _seed_default_meals(user):
+    if not SavedMeal.objects.filter(status='HISTORY', user=user).exists():
+        history_seeds = [
+            (102, 'Ayam Bakar Madu', 40, 3, 0.6, 11, 900, 'Ayam, Madu, air', 'Enak bangeett, bakal bikin lagi', 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=800&q=80'),
+            (101, 'Sup Ayam Wortel Kentang', 30, 3, 0.5, 8, 750, 'Ayam, Wortel, Kentang', 'Kalo dimakan pas lagi dingin enak', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (103, 'Omelet Bayam Keju', 15, 1, 0.2, 4, 350, 'Telur, Bayam, Keju', 'Bagus buat sarapan masaknya cepet', 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, note, img in history_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, notes=note, status='HISTORY'
+            )
+
+    if not SavedMeal.objects.filter(status='SAVED', user=user).exists():
+        saved_seeds = [
+            (101, 'Sup Ayam Wortel Kentang', 30, 2, 0.4, 10, 400, 'Ayam, Wortel, Kentang', 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80'),
+            (104, 'Nasi Goreng Sayur Sisa Kulkas', 20, 2, 0.4, 14, 480, 'Nasi, Wortel, Telur, Daun Bawang', 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80'),
+            (105, 'Tumis Buncis & Telur Orak-Arik', 15, 2, 0.3, 12, 280, 'Buncis, Telur, Bawang Merah, Bawang Putih', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80'),
+        ]
+        for rid, name, mins, portions, kg, prot, cal, ing, img in saved_seeds:
+            SavedMeal.objects.create(
+                user=user, recipe_id=rid, recipe_name=name, image_url=img,
+                cooking_time_minutes=mins, portions_saved=portions, ingredients_saved_kg=kg,
+                protein_grams=prot, calories_kcal=cal, ingredients=ing, status='SAVED'
+            )
+
+
+def _get_meals(request, status, apply_filter=True):
+    qs = SavedMeal.objects.filter(status=status, user=request.user)
+
+    if not apply_filter:
+        return qs.order_by('-updated_at', '-id')
+
+    q = request.GET.get('q', '').strip()
+    time_filter = request.GET.get('time_filter', '')
+    calorie_filter = request.GET.get('calorie_filter', '')
+
+    if q:
+        qs = qs.filter(
+            Q(recipe_name__icontains=q)
+            | Q(ingredients__icontains=q)
+            | Q(notes__icontains=q)
+        )
+
+    if time_filter == 'quick':
+        qs = qs.filter(cooking_time_minutes__lte=20)
+    elif time_filter == 'medium':
+        qs = qs.filter(cooking_time_minutes__gt=20, cooking_time_minutes__lte=35)
+    elif time_filter == 'long':
+        qs = qs.filter(cooking_time_minutes__gt=35)
+
+    if calorie_filter == 'low':
+        qs = qs.filter(calories_kcal__lte=350)
+    elif calorie_filter == 'medium':
+        qs = qs.filter(calories_kcal__gt=350, calories_kcal__lte=500)
+    elif calorie_filter == 'high':
+        qs = qs.filter(calories_kcal__gt=500)
+
+    return qs.order_by('-updated_at', '-id')
+
+
+def _compute_metrics(history_qs):
+    agg = history_qs.aggregate(
+        portions=Sum('portions_saved'),
+        weight=Sum('ingredients_saved_kg'),
+        protein=Sum('protein_grams'),
+        calories=Sum('calories_kcal'),
+    )
+    return {
+        'total_portions': agg['portions'] or 0,
+        'total_weight': round(agg['weight'] or 0.0, 1),
+        'recipes_finished': history_qs.count(),
+        'total_protein': agg['protein'] or 0,
+        'total_calories': agg['calories'] or 0,
+    }
+
+
+@login_required
+@ensure_csrf_cookie
 def show_saved_meals(request):
-    saved_meals = SavedMeal.objects.filter(status='SAVED').order_by('-created_at')
-    history_meals = SavedMeal.objects.filter(status='HISTORY').order_by('-created_at')
+    _seed_default_meals(request.user)
 
-    # Aggregated metrics calculation (with fallbacks matching the mockup)
-    portions_agg = SavedMeal.objects.aggregate(total=Sum('portions_saved'))['total']
-    total_portions = portions_agg if portions_agg is not None else 7
-
-    weight_agg = SavedMeal.objects.aggregate(total=Sum('ingredients_saved_kg'))['total']
-    total_weight = weight_agg if weight_agg is not None else 1.3
-
-    history_count = history_meals.count()
-    recipes_finished = history_count if history_count > 0 else 3
-
-    protein_agg = SavedMeal.objects.aggregate(total=Sum('protein_grams'))['total']
-    total_protein = protein_agg if protein_agg is not None else 23
-
-    calories_agg = SavedMeal.objects.aggregate(total=Sum('calories_kcal'))['total']
-    total_calories = calories_agg if calories_agg is not None else 2000
-
-    # Default mockup sample cards if table is empty
-    sample_meals = [
-        {
-            'id': 1,
-            'recipe_name': 'Sup Ayam Wortel Kentang',
-            'image_url': 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80',
-            'cooking_time_minutes': 30,
-            'portions_saved': 2,
-            'is_favorite': False,
-            'status': 'SAVED',
-        },
-        {
-            'id': 2,
-            'recipe_name': 'Sup Ayam Wortel Kentang',
-            'image_url': 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80',
-            'cooking_time_minutes': 30,
-            'portions_saved': 2,
-            'is_favorite': False,
-            'status': 'SAVED',
-        },
-        {
-            'id': 3,
-            'recipe_name': 'Sup Ayam Wortel Kentang',
-            'image_url': 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80',
-            'cooking_time_minutes': 30,
-            'portions_saved': 3,
-            'is_favorite': False,
-            'status': 'SAVED',
-        },
-    ]
+    saved_meals = _get_meals(request, 'SAVED')
+    history_meals = _get_meals(request, 'HISTORY')
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
 
     context = {
-        'total_portions': total_portions,
-        'total_weight': total_weight,
-        'recipes_finished': recipes_finished,
-        'total_protein': total_protein,
-        'total_calories': total_calories,
-        'saved_meals': saved_meals if saved_meals.exists() else sample_meals,
-        'history_meals': history_meals if history_meals.exists() else sample_meals,
+        **metrics,
+        'saved_meals': saved_meals,
+        'history_meals': history_meals,
+        'meal_form': SavedMealForm(),
+        'note_form': HistoryNoteForm(),
+        'q': request.GET.get('q', ''),
+        'time_filter': request.GET.get('time_filter', ''),
+        'calorie_filter': request.GET.get('calorie_filter', ''),
     }
-    return render(request, "saved_meals/index.html", context)
+    return render(request, 'saved_meals/index.html', context)
+
+
+@login_required
+@require_GET
+def saved_meals_json(request):
+    _seed_default_meals(request.user)
+
+    saved_meals = _get_meals(request, 'SAVED')
+    history_meals = _get_meals(request, 'HISTORY')
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+
+    return JsonResponse({
+        'success': True,
+        'saved_meals': [m.to_dict() for m in saved_meals],
+        'history_meals': [m.to_dict() for m in history_meals],
+        'metrics': metrics,
+    })
+
+
+@login_required
+@require_POST
+def add_saved_meal(request):
+    form = SavedMealForm(request.POST)
+    if form.is_valid():
+        meal = form.save(commit=False)
+        meal.user = request.user
+        meal.status = 'SAVED'
+        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        meal.save()
+        return JsonResponse({'success': True, 'meal': meal.to_dict()}, status=201)
+
+    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+
+@login_required
+@require_POST
+def mark_meal_done(request, meal_id):
+    saved_meal = get_object_or_404(SavedMeal, id=meal_id, status='SAVED', user=request.user)
+    existing = SavedMeal.objects.filter(
+        status='HISTORY',
+        user=request.user,
+        recipe_name__iexact=saved_meal.recipe_name,
+    ).first()
+
+    if existing:
+        existing.portions_saved += saved_meal.portions_saved
+        existing.ingredients_saved_kg = round(existing.ingredients_saved_kg + saved_meal.ingredients_saved_kg, 1)
+        existing.protein_grams += saved_meal.protein_grams
+        existing.calories_kcal += saved_meal.calories_kcal
+        existing.save()
+        saved_meal.delete()
+        history_meal = existing
+    else:
+        saved_meal.status = 'HISTORY'
+        saved_meal.save()
+        history_meal = saved_meal
+
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+    return JsonResponse({
+        'success': True,
+        'meal': history_meal.to_dict(),
+        'metrics': metrics,
+    })
+
+
+@login_required
+@require_POST
+def edit_history_note(request, meal_id):
+    history_meal = get_object_or_404(SavedMeal, id=meal_id, status='HISTORY', user=request.user)
+    form = HistoryNoteForm(request.POST, instance=history_meal)
+
+    if form.is_valid():
+        meal = form.save(commit=False)
+        meal.ingredients_saved_kg = round((meal.portions_saved or 1) * 0.2, 1)
+        meal.save()
+        metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+        return JsonResponse({
+            'success': True,
+            'meal_id': meal.id,
+            'notes': meal.notes,
+            'portions_saved': meal.portions_saved,
+            'metrics': metrics,
+        })
+
+    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+
+@login_required
+@require_POST
+def delete_meal(request, meal_id):
+    meal = get_object_or_404(SavedMeal, id=meal_id, user=request.user)
+    meal.delete()
+
+    metrics = _compute_metrics(_get_meals(request, 'HISTORY', apply_filter=False))
+    return JsonResponse({
+        'success': True,
+        'meal_id': meal_id,
+        'metrics': metrics,
+    })

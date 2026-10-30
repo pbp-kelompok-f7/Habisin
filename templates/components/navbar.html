@@ -1,5 +1,5 @@
 {% load static %}
-<header class="nav-shell w-full border-b border-[#E5DEC9] bg-background">
+<header class="site-header nav-shell w-full border-b border-[#E5DEC9] bg-background">
 <div class="nav-shell-in site-container flex flex-row py-4 gap-6 items-center justify-between">
   <!-- Brand Logo -->
   <a href="{% url 'home:show_home' %}" class="flex items-center gap-2 flex-shrink-0 font-heading font-extrabold"
@@ -44,6 +44,7 @@
       <!-- Meals Planner -->
       <a
         href="{% url 'meals_planner:show_planner' %}"
+        {% if request.resolver_match.app_name == 'meals_planner' %}aria-current="page"{% endif %}
         class="font-bold text-sm sm:text-base px-3 sm:px-4 py-2 rounded-xl transition {% if request.resolver_match.app_name == 'meals_planner' %}bg-brand-green-dark text-background{% else %}text-brand-green-dark hover:text-brand-green{% endif %}"
       >
         Meals Planner
