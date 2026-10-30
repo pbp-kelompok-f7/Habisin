@@ -4,7 +4,12 @@
     empty: "Cari bahan atau resep untuk menemukan resep.",
     loading: "Memuat resep…",
     error: "Gagal memuat resep. Coba lagi.",
-    noResults: (query) => `Tidak ada resep untuk "${query}".`,
+    noResults: (query, ingredients) => {
+      const parts = [];
+      if (query) parts.push(`"${query}"`);
+      if (ingredients.length) parts.push(`dengan ${ingredients.join(", ")}`);
+      return `Tidak ada resep untuk ${parts.join(" ")}.`;
+    },
   };
   const PAGE_BUTTON_CLASS = "rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer";
   const CURRENT_PAGE_CLASS = "rounded-xl px-4 py-3 border-2 border-brand-green bg-brand-green text-background font-bold";
@@ -18,11 +23,13 @@
   const grid = document.getElementById("recipe-grid");
   const pagination = document.getElementById("recipe-pagination");
   const cardTemplate = document.getElementById("recipe-card-template");
+  const ingredientList = document.getElementById("fridge-ingredients");
   const apiUrl = form.dataset.apiUrl;
   const detailUrl = form.dataset.detailUrl;
 
   let currentQuery = "";
   let controller = null;
+  const selectedIngredients = new Set();
 
   function debounce(fn, delay) {
     let timer;
@@ -117,7 +124,8 @@
     // Cancel the previous request so stale results can't overwrite newer ones
     if (controller) controller.abort();
 
-    if (!query) {
+    const ingredients = [...selectedIngredients];
+    if (!query && !ingredients.length) {
       controller = null;
       clearResults();
       showStatus(MESSAGES.empty);
@@ -129,13 +137,14 @@
 
     try {
       const params = new URLSearchParams({ q: query, page });
+      for (const ingredient of ingredients) params.append("ingredient", ingredient);
       const response = await fetch(`${apiUrl}?${params}`, { signal: controller.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
 
       renderCards(data.recipes);
       renderPagination(data);
-      showStatus(data.count === 0 ? MESSAGES.noResults(query) : "");
+      showStatus(data.count === 0 ? MESSAGES.noResults(query, ingredients) : "");
     } catch (error) {
       if (error.name === "AbortError") return;
       clearResults();
@@ -149,6 +158,19 @@
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    debouncedLoad.cancel();
+    loadRecipes(input.value);
+  });
+
+  ingredientList?.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-ingredient]");
+    if (!chip) return;
+
+    const selected = chip.getAttribute("aria-pressed") !== "true";
+    chip.setAttribute("aria-pressed", String(selected));
+    if (selected) selectedIngredients.add(chip.dataset.ingredient);
+    else selectedIngredients.delete(chip.dataset.ingredient);
+
     debouncedLoad.cancel();
     loadRecipes(input.value);
   });
