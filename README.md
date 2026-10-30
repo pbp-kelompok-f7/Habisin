@@ -112,4 +112,31 @@ git push pws main:master
 PWS membutuhkan `SECRET_KEY` serta variabel database yang sesuai ketika
 `PRODUCTION=True`. `Procfile` menjalankan migrasi dan Gunicorn untuk deployment.
 
+## AI Disclosure
 
+Dalam pengembangan website, kami menggunakan beberapa AI Tools, seperti **ChatGPT/Codex, Claude, dan Gemini** untuk 
+membantu penyusunan dan revisi kode, debugging, penyusunan pengujian, serta penjelasan alur program.
+
+### Tujuan dan strategi penggunaan AI
+
+Permintaan kepada AI diberikan secara bertahap berdasarkan kebutuhan fitur, kode yang tersedia, dan pesan error.
+
+Strategi yang digunakan meliputi:
+
+- Meminta pemeriksaan repository sebelum memberikan saran perubahan.
+- Menyelaraskan kode dengan pembaruan anggota kelompok.
+- Memecah pekerjaan menjadi perubahan yang memiliki tujuan jelas.
+- Memberikan screenshot ketika hasil tampilan berbeda dari yang diharapkan.
+- Meminta pengujian untuk penyimpanan data, pemisahan akun, validasi input, dan kalender.
+- Memperbarui penjelasan ketika implementasi berubah, termasuk setelah integrasi TheMealDB.
+
+### Keterbatasan AI yang ditemukan
+
+AI dapat memberikan penjelasan berdasarkan kondisi kode yang sudah berubah. Dalam proyek kelompok, perubahan dari 
+anggota lain dapat membuat dokumentasi sebelumnya tidak lagi sesuai. Karena itu, penjelasan fitur perlu dibandingkan 
+kembali dengan implementasi terbaru. AI juga tidak dapat menyimpulkan kondisi browser hanya dari kode. File CSS di server dapat sudah benar, sementara 
+browser masih menggunakan versi lama dari cache.
+
+Selain itu, pengujian yang disusun dengan bantuan AI hanya mencakup skenario yang dituliskan. Pengujian dengan respons 
+API tiruan tidak membuktikan bahwa koneksi internet, layanan eksternal, dan seluruh kemungkinan interaksi pengguna 
+selalu bekerja.
