@@ -58,6 +58,19 @@ h2{font-size:48px;font-weight:800;line-height:1.1}
 svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .heart{margin-left:auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid #d9cdbb;background:#fff;color:var(--green);cursor:pointer}
 .heart svg{width:16px;height:16px}
+.recipe .meta .ico-bahan{width:15px;height:15px;fill:currentColor;stroke:none}
+.heart[aria-pressed=true]{color:var(--red);border-color:var(--red)}
+.heart[aria-pressed=true] svg{fill:currentColor}
+.recipe-empty{padding:32px;border:1px dashed #d8cdb6;border-radius:16px;text-align:center;color:var(--text)}
+.recipe-empty a{color:var(--green);font-weight:700;text-decoration:underline}
+#bookmark-dialog{margin:auto;line-height:1.5}
+#bookmark-dialog h2{font-size:24px;font-weight:700;line-height:inherit;letter-spacing:normal}
+#bookmark-dialog .mt-1{margin-top:4px}
+#bookmark-dialog .mt-3{margin-top:12px}
+#bookmark-dialog .mt-5{margin-top:20px}
+#bookmark-dialog .mt-6{margin-top:24px}
+#bookmark-dialog .mb-2{margin-bottom:8px}
+#bookmark-dialog .font-bold{font-weight:700}
 .banner{display:flex;justify-content:space-between;align-items:center;gap:32px;padding:42px 64px 44px;border-radius:28px;color:#f8ecdc;background:linear-gradient(100deg,var(--green) 25%,#7a6b45 100%)}
 .banner h2{font-size:44px;max-width:520px;line-height:1.18}
 .banner p{margin-top:14px;font-size:18px;max-width:430px;line-height:1.25}
