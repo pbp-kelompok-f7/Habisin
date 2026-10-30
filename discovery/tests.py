@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from discovery.views import _missing_ingredients
 from fridge.models import InventoryItem
 
 
@@ -61,6 +62,28 @@ class RecipesApiTests(TestCase):
         fetch = fake_mealdb(by_ingredient={"Chicken": [meal("1")]})
         with patch("discovery.views._fetch_json", side_effect=fetch):
             self.assertEqual(self.get_ids(ingredient=["Chicken", "Ayam"]), [])
+
+
+class MissingIngredientsTests(TestCase):
+    def test_matches_whole_words_case_insensitively(self):
+        missing = _missing_ingredients(["Chicken Breast", "Eggplant", "Salt"], ["chicken", "Egg"])
+        self.assertEqual(missing, ["Eggplant", "Salt"])
+
+    def test_api_reports_missing_ingredients_from_fridge(self):
+        user = get_user_model().objects.create_user(username="budi", password="rahasia123")
+        InventoryItem.objects.create(user=user, name="Chicken", amount=1)
+        curry = meal("1", "Curry") | {"strIngredient1": "Chicken Breast", "strIngredient2": "Rice"}
+        fetch = fake_mealdb(by_name={"curry": [curry]})
+
+        self.client.force_login(user)
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            response = self.client.get(reverse("discovery:recipes_api"), {"q": "curry"})
+        self.assertEqual(response.json()["recipes"][0]["missing"], ["Rice"])
+
+        InventoryItem.objects.create(user=user, name="Rice", amount=1)
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            response = self.client.get(reverse("discovery:recipes_api"), {"q": "curry"})
+        self.assertEqual(response.json()["recipes"][0]["missing"], [])
 
 
 class ShowDiscoveryTests(TestCase):

@@ -4,6 +4,7 @@
     empty: "Cari bahan atau resep untuk menemukan resep.",
     loading: "Memuat resep…",
     error: "Gagal memuat resep. Coba lagi.",
+    allInFridge: "All ingredients are in your fridge",
     noResults: (query, ingredients) => {
       const parts = [];
       if (query) parts.push(`"${query}"`);
@@ -56,6 +57,18 @@
     return detailUrl.replace(/0\/$/, `${id}/`);
   }
 
+  function renderMissing(element, missing) {
+    if (missing.length === 0) {
+      element.textContent = MESSAGES.allInFridge;
+      element.classList.add("text-brand-green");
+      return;
+    }
+    const label = document.createElement("span");
+    label.className = "font-bold text-brand-red";
+    label.textContent = "Missing:";
+    element.replaceChildren(label, ` ${missing.join(", ")}`);
+  }
+
   function renderCards(recipes) {
     const cards = recipes.map((recipe) => {
       const card = cardTemplate.content.cloneNode(true);
@@ -65,7 +78,7 @@
       field("image").src = recipe.image;
       field("image").alt = recipe.name;
       field("name").textContent = recipe.name;
-      field("ingredients").textContent = recipe.ingredients.join(", ");
+      renderMissing(field("ingredients"), recipe.missing);
       field("count").textContent = `${recipe.ingredient_count} bahan`;
       return card;
     });
