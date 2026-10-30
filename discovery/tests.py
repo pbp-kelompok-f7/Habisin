@@ -1,3 +1,74 @@
-from django.test import TestCase
+from unittest.mock import patch
 
-# Create your tests here.
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.urls import reverse
+
+from fridge.models import InventoryItem
+
+
+def meal(meal_id, name="Meal"):
+    return {"idMeal": meal_id, "strMeal": name, "strMealThumb": f"https://img/{meal_id}.jpg"}
+
+
+def fake_mealdb(by_ingredient=None, by_name=None):
+    by_ingredient = by_ingredient or {}
+    by_name = by_name or {}
+
+    def fetch(endpoint, **params):
+        if endpoint == "filter.php":
+            return {"meals": by_ingredient.get(params["i"])}
+        if endpoint == "search.php":
+            return {"meals": by_name.get(params["s"])}
+        return {}
+    return fetch
+
+
+class RecipesApiTests(TestCase):
+    def get_ids(self, **params):
+        response = self.client.get(reverse("discovery:recipes_api"), params)
+        self.assertEqual(response.status_code, 200)
+        return [recipe["id"] for recipe in response.json()["recipes"]]
+
+    def test_ingredients_only_returns_recipes_with_all_ingredients(self):
+        fetch = fake_mealdb(by_ingredient={
+            "Chicken": [meal("1"), meal("2"), meal("3")],
+            "Garlic": [meal("2"), meal("3"), meal("4")],
+        })
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            self.assertEqual(self.get_ids(ingredient=["Chicken", "Garlic"]), ["2", "3"])
+            response = self.client.get(reverse("discovery:recipes_api"), {"ingredient": ["Chicken", "Garlic"]})
+        self.assertEqual(response.json()["ingredients"], ["Chicken", "Garlic"])
+
+    def test_ingredients_filter_search_results(self):
+        fetch = fake_mealdb(
+            by_ingredient={"Chicken": [meal("1"), meal("3")]},
+            by_name={"curry": [meal("1"), meal("2")]},
+        )
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            self.assertEqual(self.get_ids(q="curry", ingredient="Chicken"), ["1"])
+
+    def test_ingredient_with_no_recipes_returns_empty(self):
+        fetch = fake_mealdb(by_ingredient={"Chicken": [meal("1")]})
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            self.assertEqual(self.get_ids(ingredient=["Chicken", "Ayam"]), [])
+
+
+class ShowDiscoveryTests(TestCase):
+    def test_lists_users_unique_ingredients(self):
+        user = get_user_model().objects.create_user(username="budi", password="rahasia123")
+        other = get_user_model().objects.create_user(username="ani", password="rahasia123")
+        InventoryItem.objects.create(user=user, name="Garlic", amount=1)
+        InventoryItem.objects.create(user=user, name="Chicken", amount=1)
+        InventoryItem.objects.create(user=user, name="chicken", amount=2, place="freezer")
+        InventoryItem.objects.create(user=other, name="Beef", amount=1)
+
+        self.client.force_login(user)
+        response = self.client.get(reverse("discovery:show_discovery"))
+
+        self.assertEqual(response.context["fridge_ingredients"], ["Chicken", "Garlic"])
+        self.assertNotContains(response, 'data-ingredient="Beef"')
+
+    def test_anonymous_user_sees_login_prompt(self):
+        response = self.client.get(reverse("discovery:show_discovery"))
+        self.assertContains(response, "untuk melihat bahan di kulkasmu")

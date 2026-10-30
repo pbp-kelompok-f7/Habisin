@@ -29,16 +29,23 @@
     <div class="flex flex-row justify-between w-full items-center">
       <div class="">
         <h2>Bahan di kulkasmu</h2>
-        <span>Pilih bahan untuk mencari resep yang memakainya.</span>
+        <span>Pilih bahan untuk mencari resep yang memakai semuanya, atau untuk menyaring hasil pencarian.</span>
       </div>
       <a class="rounded-xl px-4 py-3 bg-background font-bold" href="{% url 'fridge:show_fridge' %}">Kelola Kulkas</a>
     </div>
-    <div class="flex flex-row flex-wrap gap-2 w-full">
-      <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
-      <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
-      <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
-      <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
-      <p class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white">Ayam • 2 hari</p>
+    <div id="fridge-ingredients" class="flex flex-row flex-wrap gap-2 w-full">
+      {% if user.is_authenticated %}
+        {% for name in fridge_ingredients %}
+          <button type="button"
+                  aria-pressed="false"
+                  data-ingredient="{{ name }}"
+                  class="rounded-full px-4 py-3 border-brand-green border-2 bg-background-white cursor-pointer transition-colors hover:bg-brand-orange-light aria-pressed:bg-brand-green aria-pressed:text-background">{{ name }}</button>
+        {% empty %}
+          <p class="text-muted">Kulkasmu masih kosong. Tambahkan bahan lewat Kelola Kulkas.</p>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted"><a class="font-bold underline" href="{% url 'authentication:login' %}">Masuk</a> untuk melihat bahan di kulkasmu.</p>
+      {% endif %}
     </div>
   </section>
   <section id="recipe-section" class="flex flex-col w-full gap-4 scroll-mt-8">
