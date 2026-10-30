@@ -58,23 +58,19 @@
       </a>
     </div>
 
-        <!-- Right Profile Avatar / Auth -->
+    <!-- Right Profile Avatar / Auth -->
     <div class="flex flex-row items-center gap-3">
       {% if user.is_authenticated %}
-      <a href="{% url 'authentication:profile' %}" class="nav-avatar w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Profile" aria-label="Profile">
-        <img
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}&backgroundColor=b6e3f4"
-          alt="{{ user.username }}"
-          class="w-full h-full object-cover"
-        />
+      <a href="{% url 'authentication:profile' %}" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-brand-green flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Profile" aria-label="Profile">
+        {% if user.profile.photo %}
+        <img src="{{ user.profile.photo.url }}" alt="{{ user.username }}" class="w-full h-full object-cover" />
+        {% else %}
+        <span class="text-base font-bold text-white" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+        {% endif %}
       </a>
       {% else %}
-      <a href="{% url 'authentication:login' %}" class="nav-avatar w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-sky-200 flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Sign In" aria-label="Sign In">
-        <img
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed=HabisinUser&backgroundColor=b6e3f4"
-          alt="Profile Avatar"
-          class="w-full h-full object-cover"
-        />
+      <a href="{% url 'authentication:login' %}" class="w-10 h-10 rounded-full border-2 border-brand-green-dark overflow-hidden bg-background-white flex items-center justify-center shadow-sm hover:opacity-90 transition" title="Sign In" aria-label="Sign In">
+        <svg class="size-6 text-brand-green-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
       </a>
       {% endif %}
     </div>

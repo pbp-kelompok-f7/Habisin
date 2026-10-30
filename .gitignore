@@ -126,3 +126,16 @@ sftp-config.json
 .local/
 staticfiles/
 .tailwindcss/
+
+# Node / Tailwind
+node_modules/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Sisa merge dan variasi SQLite
+*.orig
+*.rej
+*.sqlite3
+*.sqlite3-journal

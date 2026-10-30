@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "authentication",
     "fridge",
     "bookmarks",
+    "comments",
 ]
 
 if DEBUG:
@@ -161,3 +162,5 @@ WHITENOISE_USE_FINDERS = True
 LOGIN_URL = "authentication:login"
 LOGIN_REDIRECT_URL = "discovery:show_discovery"
 LOGOUT_REDIRECT_URL = "authentication:login"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
