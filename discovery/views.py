@@ -216,6 +216,9 @@ def show_recipe_detail(request, recipe_id):
             "ingredient_count": len(ingredients),
             "ingredient_measures": _extract_ingredient_measures(meal),
             "instructions": _extract_instructions(meal),
+            "bookmarked": request.user.is_authenticated and SavedRecipe.objects.filter(
+                category__user=request.user, recipe_id=recipe_id
+            ).exists(),
         },
     }
     context.update(comment_section_context(request, recipe_id))

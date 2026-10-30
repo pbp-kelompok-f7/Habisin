@@ -200,3 +200,29 @@ class RecipeSearchTests(BookmarksTestCase):
     def test_requires_login(self):
         self.client.logout()
         self.assertEqual(self.search().status_code, 401)
+
+
+@patch("discovery.views._lookup_meal", return_value=MEAL)
+class RecipeDetailBookmarkTests(BookmarksTestCase):
+    def detail(self):
+        return self.client.get(reverse("discovery:show_recipe_detail", args=[52772]))
+
+    def test_detail_shows_bookmark_button_and_dialog(self, lookup):
+        response = self.detail()
+        self.assertContains(response, 'data-bookmark="52772"')
+        self.assertContains(response, 'id="bookmark-dialog"')
+        self.assertContains(response, "bookmark_dialog.js")
+        self.assertFalse(response.context["recipe"]["bookmarked"])
+
+    def test_detail_marks_saved_recipe(self, lookup):
+        SavedRecipe.objects.create(category=default_category(self.user), recipe_id=52772, name="x", image="https://x.test/a.jpg")
+        response = self.detail()
+        self.assertTrue(response.context["recipe"]["bookmarked"])
+        self.assertContains(response, 'aria-pressed="true"')
+
+    def test_detail_logged_out_links_to_login(self, lookup):
+        self.client.logout()
+        response = self.detail()
+        self.assertNotContains(response, 'id="bookmark-dialog"')
+        self.assertNotContains(response, "data-bookmark=")
+        self.assertContains(response, reverse("authentication:login") + "?next=")
