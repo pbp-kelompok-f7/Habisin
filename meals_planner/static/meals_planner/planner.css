@@ -88,7 +88,8 @@ body:has(.planner){background:#f8eddc}
 .planner-days{margin-top:22px}.planner-day{flex-direction:column;gap:3px}
 .planner-day-date{font-size:12px;font-weight:400;opacity:.85;white-space:nowrap}
 .recipe-option-copy>.recipe-source{justify-self:start;font-size:11px;font-weight:700;line-height:1.4;color:#315d47;background:#edf2e9;border-radius:20px;padding:3px 8px}
-.recipe-option-copy>.recipe-source.is-example{color:#785326;background:#f8e8cc}
+.recipe-option-copy>.recipe-source.is-unsaved{color:#785326;background:#f8e8cc}
+.recipe-option-copy>.recipe-ingredients{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 .recipe-image-placeholder{display:grid;place-items:center;flex-shrink:0;width:88px;height:76px;border-radius:10px;background:#f8eddc;color:var(--planner-muted);font-size:28px}
 .planner-recovery{display:inline-flex;align-items:center;min-height:44px;padding:8px 0;font-size:15px;font-weight:700;text-decoration:underline;text-underline-offset:3px;color:var(--planner-ink)}
 #ingredients-incomplete{border-left:3px solid #c49751;padding-left:10px}

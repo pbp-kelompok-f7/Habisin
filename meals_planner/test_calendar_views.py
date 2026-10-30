@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .services import set_meal
+from .tests import fake_lookup
 
 
 @patch("meals_planner.calendar_views.planner_today", return_value=date(2026, 10, 30))
@@ -14,8 +15,9 @@ class CalendarEndpointTests(TestCase):
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user(username="calendar-reader")
         cls.other = get_user_model().objects.create_user(username="calendar-neighbor")
-        set_meal(cls.user, date(2026, 10, 30), "lunch", "spinach-omelet")
-        set_meal(cls.other, date(2026, 10, 30), "dinner", "fried-rice")
+        with patch("meals_planner.services.lookup_meal", side_effect=fake_lookup):
+            set_meal(cls.user, date(2026, 10, 30), "lunch", "mealdb:52772")
+            set_meal(cls.other, date(2026, 10, 30), "dinner", "mealdb:52940")
 
     def setUp(self):
         self.url = reverse("meals_planner:calendar_data")
@@ -52,7 +54,8 @@ class CalendarPageTests(TestCase):
     def test_calendar_follows_selected_date_across_month_boundary(self):
         user = get_user_model().objects.create_user(username="calendar-page")
         self.client.force_login(user)
-        set_meal(user, date(2026, 11, 1), "lunch", "spinach-omelet")
+        with patch("meals_planner.services.lookup_meal", side_effect=fake_lookup):
+            set_meal(user, date(2026, 11, 1), "lunch", "mealdb:52977")
         response = self.client.get(reverse("meals_planner:show_planner"), {"week": "2026-10-26", "day": "6"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["selected_date"], "2026-11-01")
