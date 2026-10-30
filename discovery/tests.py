@@ -25,6 +25,15 @@ def fake_mealdb(by_ingredient=None, by_name=None):
 
 
 class RecipesApiTests(TestCase):
+    def setUp(self):
+        user = get_user_model().objects.create_user(username="budi", password="rahasia123")
+        self.client.force_login(user)
+
+    def test_guest_is_rejected(self):
+        self.client.logout()
+        response = self.client.get(reverse("discovery:recipes_api"), {"q": "chicken"})
+        self.assertEqual(response.status_code, 401)
+
     def get_ids(self, **params):
         response = self.client.get(reverse("discovery:recipes_api"), params)
         self.assertEqual(response.status_code, 200)
@@ -66,9 +75,19 @@ class ShowDiscoveryTests(TestCase):
         self.client.force_login(user)
         response = self.client.get(reverse("discovery:show_discovery"))
 
+        self.assertTemplateUsed(response, "discovery/index.html")
         self.assertEqual(response.context["fridge_ingredients"], ["Chicken", "Garlic"])
         self.assertNotContains(response, 'data-ingredient="Beef"')
 
-    def test_anonymous_user_sees_login_prompt(self):
-        response = self.client.get(reverse("discovery:show_discovery"))
-        self.assertContains(response, "untuk melihat bahan di kulkasmu")
+    def test_guest_sees_limited_page_with_eight_recipes(self):
+        fetch = fake_mealdb(by_name={"": [meal(str(i)) for i in range(10)]})
+        with patch("discovery.views._fetch_json", side_effect=fetch):
+            response = self.client.get(reverse("discovery:show_discovery"))
+
+        self.assertTemplateUsed(response, "discovery/limited.html")
+        self.assertEqual([r["id"] for r in response.context["recipes"]], [str(i) for i in range(8)])
+        self.assertContains(response, 'data-field="link"', count=8)
+        self.assertContains(response, "Join us to search recipes now!")
+        self.assertContains(response, f'href="{reverse("authentication:register")}"')
+        self.assertNotContains(response, 'id="recipe-search"')
+        self.assertNotContains(response, 'id="fridge-ingredients"')

@@ -9,9 +9,11 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from comments.views import comment_section_context
 from fridge.models import InventoryItem
+from fridge.views import api_login_required
 
 MEALDB_BASE = "https://www.themealdb.com/api/json/v1/1/"
 RECIPES_PER_PAGE = 8
+PREVIEW_RECIPES = 8
 MAX_INGREDIENTS = 10
 
 
@@ -40,6 +42,23 @@ def _capitalize_words(text):
 def _lookup_meal(meal_id):
     meals = _fetch_json("lookup.php", i=meal_id).get("meals") or []
     return meals[0] if meals else None
+
+
+def _serialize_recipe(meal, details):
+    ingredients = [_capitalize_words(i) for i in _extract_ingredients(details)] if details else []
+    return {
+        "id": meal["idMeal"],
+        "name": _capitalize_words(meal["strMeal"]),
+        "image": meal["strMealThumb"],
+        "ingredients": ingredients,
+        "ingredient_count": len(ingredients),
+    }
+
+
+def _preview_recipes():
+    # search.php dengan kata kunci kosong mengembalikan data resep lengkap, jadi tidak perlu lookup lagi
+    meals = (_fetch_json("search.php", s="").get("meals") or [])[:PREVIEW_RECIPES]
+    return [_serialize_recipe(meal, meal) for meal in meals]
 
 
 def _meals_with_ingredient(name):
@@ -79,16 +98,7 @@ def _search_recipes(query, ingredients, page_number):
     with ThreadPoolExecutor(max_workers=RECIPES_PER_PAGE) as executor:
         detailed_meals = list(executor.map(get_details, page_obj.object_list))
 
-    recipes = []
-    for meal, details in zip(page_obj.object_list, detailed_meals):
-        recipe_ingredients = [_capitalize_words(i) for i in _extract_ingredients(details)] if details else []
-        recipes.append({
-            "id": meal["idMeal"],
-            "name": _capitalize_words(meal["strMeal"]),
-            "image": meal["strMealThumb"],
-            "ingredients": recipe_ingredients,
-            "ingredient_count": len(recipe_ingredients),
-        })
+    recipes = [_serialize_recipe(meal, details) for meal, details in zip(page_obj.object_list, detailed_meals)]
 
     page_range = [
         None if number == Paginator.ELLIPSIS else number
@@ -116,12 +126,12 @@ def _fridge_ingredients(user):
 
 
 def show_discovery(request):
-    context = {}
-    if request.user.is_authenticated:
-        context["fridge_ingredients"] = _fridge_ingredients(request.user)
-    return render(request, "discovery/index.html", context)
+    if not request.user.is_authenticated:
+        return render(request, "discovery/limited.html", {"recipes": _preview_recipes()})
+    return render(request, "discovery/index.html", {"fridge_ingredients": _fridge_ingredients(request.user)})
 
 
+@api_login_required
 def recipes_api(request):
     query = request.GET.get("q", "").strip()
     ingredients = [i.strip() for i in request.GET.getlist("ingredient") if i.strip()][:MAX_INGREDIENTS]
