@@ -4,12 +4,12 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-[#EDD9B8] text-[#1E2922] font-heading font-bold text-sm sm:text-base border-b border-[#E3CDAA]">
-            <th class="py-4 px-6">Nama Menu</th>
-            <th class="py-4 px-6">Komposisi</th>
-            <th class="py-4 px-6 text-center">Porsi</th>
-            <th class="py-4 px-6 text-center">Nutrisi</th>
+            <th class="py-4 px-6">Meal Name</th>
+            <th class="py-4 px-6">Ingredients</th>
+            <th class="py-4 px-6 text-center">Portions</th>
+            <th class="py-4 px-6 text-center">Nutrition</th>
             <th class="py-4 px-6">Note</th>
-            <th class="py-4 px-6 text-right">Aksi</th>
+            <th class="py-4 px-6 text-right">Actions</th>
           </tr>
         </thead>
         <tbody id="history-table-body" class="divide-y divide-[#EFE8DC]">
@@ -19,15 +19,15 @@
             <td class="py-4 px-6 text-gray-700 text-sm">{{ meal.ingredients|default:"-" }}</td>
             <td class="py-4 px-6 font-bold text-center" id="history-portions-{{ meal.id }}">{{ meal.portions_saved }}</td>
             <td class="py-4 px-6 text-center text-xs sm:text-sm font-semibold text-[#344C3D]">
-              <span id="history-calories-{{ meal.id }}">{{ meal.calories_kcal }}</span> kkal
+              <span id="history-calories-{{ meal.id }}">{{ meal.calories_kcal }}</span> kcal
               <span class="text-gray-300 mx-1">&bull;</span>
-              <span id="history-protein-{{ meal.id }}">{{ meal.protein_grams }}</span>gr protein
+              <span id="history-protein-{{ meal.id }}">{{ meal.protein_grams }}</span>g protein
             </td>
             <td class="py-4 px-6 text-gray-700 text-sm" id="history-note-{{ meal.id }}">
               {% if user.is_authenticated %}
                 {{ meal.notes|default:"-" }}
               {% else %}
-                <span class="italic text-gray-400">Login untuk melihat catatan pribadi</span>
+                <span class="italic text-gray-400">Log in to view personal notes</span>
               {% endif %}
             </td>
             <td class="py-4 px-6 text-right">
@@ -53,8 +53,8 @@
                   data-meal-id="{{ meal.id }}"
                   onclick="deleteMeal(this.dataset.mealId, 'row')"
                   class="w-9 h-9 rounded-xl sm:rounded-2xl bg-[#FCE2DC] hover:bg-[#fad0c7] text-[#DE5A43] flex items-center justify-center transition shadow-sm flex-shrink-0 cursor-pointer"
-                  title="Hapus dari History"
-                  aria-label="Hapus Riwayat"
+                  title="Delete from History"
+                  aria-label="Delete History"
                 >
                   <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -66,7 +66,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="py-12 px-6 text-center text-gray-500">Belum ada riwayat masakan.</td>
+            <td colspan="6" class="py-12 px-6 text-center text-gray-500">No cooking history yet.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -87,14 +87,14 @@
 
     <form id="edit-note-form" onsubmit="submitEditNote(event)" class="flex flex-col gap-3">
       <input type="hidden" id="edit-modal-meal-id" />
-      <label class="text-xs font-bold text-gray-700">Jumlah Porsi (otomatis sesuaikan kalori &amp; protein):</label>
+      <label class="text-xs font-bold text-gray-700">Portions (auto-scales calories &amp; protein):</label>
       <input id="edit-modal-portions-input" name="portions_saved" type="number" min="1" required class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl" />
-      <label class="text-xs font-bold text-gray-700">Catatan:</label>
+      <label class="text-xs font-bold text-gray-700">Notes:</label>
       <textarea id="edit-modal-note-input" name="notes" rows="3" class="w-full p-3 text-sm bg-gray-50 border border-[#D9D0BE] rounded-2xl"></textarea>
 
       <div class="flex justify-end gap-2 mt-2">
-        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-full border border-gray-300 text-sm font-bold">Batal</button>
-        <button type="submit" class="px-5 py-2 rounded-full bg-[#344C3D] text-white text-sm font-bold">Simpan</button>
+        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-full border border-gray-300 text-sm font-bold">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-full bg-[#344C3D] text-white text-sm font-bold">Save</button>
       </div>
     </form>
   </div>

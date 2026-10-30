@@ -14,7 +14,7 @@ from .views import planner_today
 def calendar_data(request):
     if not request.user.is_authenticated:
         return JsonResponse({
-            "error": "Masuk lagi untuk melihat kalender menu.",
+            "error": "Sign in again to view the meal calendar.",
             "login_url": reverse("authentication:login"),
         }, status=401)
     today = planner_today()

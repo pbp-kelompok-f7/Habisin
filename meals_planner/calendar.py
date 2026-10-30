@@ -12,7 +12,7 @@ from .services import MONTHS, parse_week, week_start
 
 def parse_month(value):
     """Accept an explicit YYYY-MM month with room for adjacent grid dates."""
-    error = "Pilih bulan dengan format YYYY-MM yang valid."
+    error = "Please select a valid YYYY-MM month."
     if not isinstance(value, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}", value):
         raise ValueError(error)
     try:

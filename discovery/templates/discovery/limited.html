@@ -6,8 +6,8 @@
 
 {% block content %}
 <main class="site-container flex flex-col text-left">
-  <h1 class="md:text-900 text-left">Temukan Resep</h1>
-  <span class="mb-8">Temukan resep dari bahan yang sudah ada di kulkasmu!</span>
+  <h1 class="md:text-900 text-left">Discover Recipes</h1>
+  <span class="mb-8">Find recipes using ingredients already in your fridge!</span>
   <section class="relative w-full">
     {% if recipes %}
       {# Kolom tetap agar baris terakhir selalu tertutup overlay: 4 baris di mobile, 2 baris di desktop #}
@@ -21,14 +21,14 @@
         <div class="absolute inset-0 bg-linear-to-b from-transparent to-background" aria-hidden="true"></div>
         <h2 class="relative">Join us to search recipes now!</h2>
         <a class="relative rounded-xl px-6 py-3 bg-brand-green text-background font-bold transition-colors hover:bg-brand-orange-light"
-           href="{% url 'authentication:register' %}">Daftar Sekarang</a>
+           href="{% url 'authentication:register' %}">Sign Up Now</a>
       </div>
     {% else %}
       <div class="flex flex-col items-center gap-4 py-16 text-center">
-        <p class="text-muted">Resep belum bisa dimuat saat ini.</p>
+        <p class="text-muted">Recipes cannot be loaded right now.</p>
         <h2>Join us to search recipes now!</h2>
         <a class="rounded-xl px-6 py-3 bg-brand-green text-background font-bold transition-colors hover:bg-brand-orange-light"
-           href="{% url 'authentication:register' %}">Daftar Sekarang</a>
+           href="{% url 'authentication:register' %}">Sign Up Now</a>
       </div>
     {% endif %}
   </section>

@@ -11,7 +11,7 @@
   </a>
   {% if not category.is_default %}
   <button type="button"
-          aria-label="Ganti nama {{ category.name }}"
+          aria-label="Rename {{ category.name }}"
           commandfor="rename-category-dialog"
           command="show-modal"
           data-rename-category="{{ category.id }}"
@@ -20,7 +20,7 @@
     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
   </button>
   <button type="button"
-          aria-label="Hapus {{ category.name }}"
+          aria-label="Delete {{ category.name }}"
           commandfor="delete-category-dialog"
           command="show-modal"
           data-delete-category="{{ category.id }}"

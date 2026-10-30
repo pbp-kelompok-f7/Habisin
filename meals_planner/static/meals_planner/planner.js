@@ -40,13 +40,13 @@
     let target = new URL(window.location.href);
     target.searchParams.set("week", state.week);
     target.searchParams.set("day", selectedDay);
-    let label = "Muat ulang";
+    let label = "Reload";
     if (loginUrl) {
       const login = new URL(loginUrl, window.location.origin);
       if (login.origin === window.location.origin) {
         login.searchParams.set("next", target.pathname + target.search);
         target = login;
-        label = "Masuk lagi";
+        label = "Sign in again";
       }
     }
     recoveryLinks.forEach(link => {
@@ -59,7 +59,7 @@
   function render(reason = "update") {
     const meals = state.meals[String(selectedDay)] || {};
     document.getElementById("planner-subtitle").textContent = selectedDay === state.today
-      ? "Menu untuk hari ini!" : `Menu untuk hari ${tabs[selectedDay].dataset.name}!`;
+      ? "Menu for today!" : `Menu for ${tabs[selectedDay].dataset.name}!`;
     tabs.forEach((tab, index) => {
       tab.classList.toggle("is-selected", index === selectedDay);
       if (index === selectedDay) tab.setAttribute("aria-current", "date");
@@ -68,7 +68,7 @@
       if (index === state.today) {
         const todayLabel = document.createElement("span");
         todayLabel.className = "today-label";
-        todayLabel.textContent = " · hari ini";
+        todayLabel.textContent = " · today";
         tab.firstElementChild.append(todayLabel);
       }
     });
@@ -76,7 +76,7 @@
     const isCurrentWeek = state.week === state.current_week;
     const currentWeekLink = document.createElement(isCurrentWeek ? "span" : "a");
     currentWeekLink.className = `week-current${isCurrentWeek ? " is-current" : ""}`;
-    currentWeekLink.textContent = "Minggu ini";
+    currentWeekLink.textContent = "This week";
     if (!isCurrentWeek) {
       const url = new URL(window.location.href);
       url.searchParams.set("week", state.current_week);
@@ -114,8 +114,8 @@
     const emptyIngredients = document.getElementById("shopping-empty");
     emptyIngredients.hidden = state.ingredients.length > 0;
     emptyIngredients.textContent = state.total
-      ? "Daftar bahan belum tersedia untuk menu yang dipilih."
-      : "Tambahkan menu untuk melihat daftar bahannya.";
+      ? "Ingredient list is not available yet for the selected meals."
+      : "Add a meal to view its ingredients.";
     document.getElementById("ingredients-incomplete").hidden = !state.missing_ingredients;
     root.dispatchEvent(new CustomEvent("planner:statechange", {detail: {state, selectedDay, reason}}));
   }
@@ -138,10 +138,10 @@
     name.textContent = recipe.name;
     const saved = document.createElement("span");
     saved.className = `recipe-source${recipe.saved ? "" : " is-unsaved"}`;
-    saved.textContent = recipe.saved ? "Tersimpan" : "Belum disimpan";
+    saved.textContent = recipe.saved ? "Saved" : "Not saved";
     const ingredients = document.createElement("span");
     ingredients.className = "recipe-ingredients";
-    ingredients.textContent = recipe.ingredients.length ? recipe.ingredients.join(", ") : "Bahan belum tersedia";
+    ingredients.textContent = recipe.ingredients.length ? recipe.ingredients.join(", ") : "Ingredients not available";
     copy.append(name, saved, ingredients);
     const plus = document.createElement("span");
     plus.className = "recipe-option-plus";
@@ -161,13 +161,13 @@
     const query = search.value.trim();
     if (!query && defaultChoices) {
       searchController?.abort();
-      showRecipes(defaultChoices, "Belum ada resep untuk ditampilkan.");
+      showRecipes(defaultChoices, "No recipes to display yet.");
       return;
     }
     searchController?.abort();
     searchController = new AbortController();
     recipeOptions.replaceChildren();
-    recipeMessage.textContent = query ? `Mencari "${query}" di TheMealDB...` : "Memuat resep...";
+    recipeMessage.textContent = query ? `Searching "${query}" on TheMealDB...` : "Loading recipes...";
     recipeMessage.hidden = false;
     try {
       const url = new URL(root.dataset.recipesUrl, window.location.origin);
@@ -181,11 +181,11 @@
       if (!response.ok || !Array.isArray(data?.recipes)) throw new Error();
       if (!query) defaultChoices = data.recipes;
       if (query === search.value.trim()) {
-        showRecipes(data.recipes, query ? "Resep belum ditemukan. Coba nama resep atau bahan lain dalam bahasa Inggris." : "Belum ada resep untuk ditampilkan.");
+        showRecipes(data.recipes, query ? "No recipes found. Try another recipe name or ingredient in English." : "No recipes to display yet.");
       }
     } catch (error) {
       if (error.name === "AbortError") return;
-      showRecipes([], error.message || "Resep belum dapat dimuat. Periksa koneksi lalu coba lagi.");
+      showRecipes([], error.message || "Recipes could not be loaded. Check your connection and try again.");
     }
   }
 
@@ -223,7 +223,7 @@
   document.querySelector(".planner-week").addEventListener("click", event => {
     if (saving && event.target.closest("[data-week-link]")) {
       event.preventDefault();
-      announce("Tunggu sampai menu selesai disimpan sebelum mengganti minggu.");
+      announce("Please wait until the meal finishes saving before changing weeks.");
     }
   });
   window.addEventListener("popstate", () => {
@@ -244,7 +244,7 @@
       opener = button;
       const card = cards.find(card => card.dataset.slot === editingSlot);
       const hasRecipe = !!state.meals[String(selectedDay)]?.[editingSlot];
-      document.getElementById("recipe-dialog-title").textContent = hasRecipe ? "Ganti menu" : "Tambah menu";
+      document.getElementById("recipe-dialog-title").textContent = hasRecipe ? "Change meal" : "Add meal";
       document.getElementById("recipe-dialog-day").textContent = `${tabs[selectedDay].dataset.name}, ${tabs[selectedDay].dataset.dateLabel} · ${card.dataset.label}`;
       document.getElementById("dialog-error").textContent = "";
       clearRecovery();
@@ -278,7 +278,7 @@
     root.dispatchEvent(new CustomEvent("planner:busychange"));
     document.getElementById("dialog-error").textContent = "";
     clearRecovery();
-    announce("Menyimpan menu...");
+    announce("Saving meal...");
     const day = selectedDay;
     let focusAfterSave = null;
     let loginUrl = null;
@@ -292,12 +292,12 @@
       const data = await response.json().catch(() => null);
       if (response.status === 401 || response.redirected) {
         loginUrl = data?.login_url || (response.redirected ? response.url : null);
-        throw new Error("Sesi masukmu berakhir. Masuk lagi untuk menyimpan menu.");
+        throw new Error("Your session has expired. Sign in again to save meals.");
       }
       if (!response.ok || !data?.meals || !Array.isArray(data.counts)) {
         const fallback = response.status === 403
-          ? "Sesi keamanan berubah. Muat ulang halaman sebelum menyimpan menu."
-          : "Menu belum dapat diperbarui. Muat ulang halaman dan coba lagi.";
+          ? "Security session changed. Reload the page before saving meals."
+          : "Meal could not be updated. Reload the page and try again.";
         throw new Error(data?.error || fallback);
       }
       state = data;
@@ -305,10 +305,10 @@
       render();
       focusAfterSave = cards.find(card => card.dataset.slot === slot)?.querySelector(recipe ? ".meal-change" : ".meal-add");
       if (dialog.open) dialog.close();
-      announce(recipe ? "Menu tersimpan di akunmu. Ringkasan mingguan sudah diperbarui." : "Menu dihapus. Ringkasan mingguan sudah diperbarui.");
+      announce(recipe ? "Meal saved to your account. Weekly summary updated." : "Meal removed. Weekly summary updated.");
     } catch (error) {
       const message = error instanceof TypeError
-        ? "Koneksi terputus. Muat ulang untuk memeriksa menu sebelum mencoba lagi."
+        ? "Connection lost. Reload to check your meals before trying again."
         : error.message;
       announce(message, true);
       document.getElementById("dialog-error").textContent = message;

@@ -129,7 +129,7 @@ class RecipeDetailCookButtonTests(TestCase):
         response = self.client.get(self.url)
         self.assertTrue(response.context["recipe"]["in_saved_meals"])
         self.assertNotContains(response, "data-cook-url")
-        self.assertContains(response, "Lihat di Saved Meals")
+        self.assertContains(response, "View in Saved Meals")
 
     def test_logged_out_links_to_login(self, lookup):
         self.client.logout()
