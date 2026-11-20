@@ -1,4 +1,5 @@
 from django.urls import path
+from saved_meals import api_views
 from saved_meals.views import (
     show_saved_meals,
     saved_meals_json,
@@ -19,4 +20,14 @@ urlpatterns = [
     path('complete/<int:meal_id>/', mark_meal_done, name="mark_meal_done"),
     path('history/<int:meal_id>/edit_note/', edit_history_note, name="edit_history_note"),
     path('delete/<int:meal_id>/', delete_meal, name="delete_meal"),
+
+    # Django REST Framework API endpoints (Mobile & REST clients)
+    path('api/overview/', api_views.SavedMealsOverviewAPIView.as_view(), name="api_overview"),
+    path('api/metrics/', api_views.SavedMealsMetricsAPIView.as_view(), name="api_metrics"),
+    path('api/meals/', api_views.SavedMealListCreateAPIView.as_view(), name="api_meal_list_create"),
+    path('api/meals/<int:meal_id>/', api_views.SavedMealDetailAPIView.as_view(), name="api_meal_detail"),
+    path('api/meals/from-recipe/<int:recipe_id>/', api_views.AddRecipeToSavedMealsAPIView.as_view(), name="api_add_recipe"),
+    path('api/meals/<int:meal_id>/complete/', api_views.MarkMealDoneAPIView.as_view(), name="api_mark_meal_done"),
+    path('api/history/', api_views.HistoryListAPIView.as_view(), name="api_history_list"),
+    path('api/history/<int:meal_id>/', api_views.HistoryDetailAPIView.as_view(), name="api_history_detail"),
 ]
