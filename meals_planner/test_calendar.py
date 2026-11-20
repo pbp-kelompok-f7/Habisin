@@ -53,7 +53,7 @@ class CalendarMonthStateTests(TestCase):
     def test_calendar_is_six_complete_weeks_starting_on_monday(self):
         state = month_state(self.user, date(2026, 10, 1), date(2026, 10, 30))
         self.assertEqual(state["month"], "2026-10")
-        self.assertEqual(state["label"], "Oktober 2026")
+        self.assertEqual(state["label"], "October 2026")
         self.assertEqual(state["previous_month"], "2026-09")
         self.assertEqual(state["next_month"], "2026-11")
         self.assertEqual(len(state["days"]), 42)

@@ -72,7 +72,7 @@ def session_expired(message):
 @require_GET
 def search_recipes(request):
     if not request.user.is_authenticated:
-        return session_expired("Sesi masuk berakhir. Masuk lagi untuk mencari resep.")
+        return session_expired("Session expired. Sign in again to search recipes.")
     query = request.GET.get("q", "").strip()[:100]
     return JsonResponse({"query": query, "recipes": recipe_choices(request.user, query)})
 
@@ -80,7 +80,7 @@ def search_recipes(request):
 @require_POST
 def update_meal(request):
     if not request.user.is_authenticated:
-        return session_expired("Sesi masuk berakhir. Masuk lagi untuk menyimpan menu.")
+        return session_expired("Session expired. Sign in again to save meals.")
     try:
         week = parse_week(request.POST.get("week"))
     except ValueError as error:
@@ -89,9 +89,9 @@ def update_meal(request):
     slot = request.POST.get("slot")
     recipe = request.POST.get("recipe")
     if day not in map(str, range(7)) or slot not in dict(SLOTS):
-        return JsonResponse({"error": "Pilih hari dan waktu makan yang valid."}, status=400)
+        return JsonResponse({"error": "Please select a valid day and meal slot."}, status=400)
     if recipe is None:
-        return JsonResponse({"error": "Pilih resep atau hapus menu yang ada."}, status=400)
+        return JsonResponse({"error": "Please select a recipe or remove the current meal."}, status=400)
     try:
         set_meal(request.user, week + timedelta(days=int(day)), slot, recipe)
     except ValueError as error:

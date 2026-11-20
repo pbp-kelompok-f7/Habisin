@@ -41,7 +41,7 @@
         url.searchParams.set("next", window.location.pathname + window.location.search);
         const link = document.createElement("a");
         link.href = url.href;
-        link.textContent = "Masuk lagi";
+        link.textContent = "Sign in again";
         status.append(" ", link);
       }
     }
@@ -72,7 +72,7 @@
       cell.dataset.calendarWeek = day.week;
       cell.dataset.calendarDay = day.weekday;
       cell.dataset.count = day.count;
-      cell.setAttribute("aria-label", `${day.label}, ${day.count} dari 3 menu${day.is_today ? ", hari ini" : ""}${day.date === selectedDate ? ", dipilih" : ""}`);
+      cell.setAttribute("aria-label", `${day.label}, ${day.count} of 3 meals${day.is_today ? ", today" : ""}${day.date === selectedDate ? ", selected" : ""}`);
       if (day.date === selectedDate) cell.setAttribute("aria-current", "date");
       const number = document.createElement("time");
       number.className = "calendar-day-number";
@@ -90,13 +90,13 @@
       return cell;
     }));
     document.getElementById("calendar-summary").textContent =
-      `${calendar.total} menu di ${calendar.scheduled_days} hari bulan ini`;
+      `${calendar.total} meals across ${calendar.scheduled_days} days this month`;
     syncControls();
   }
 
   function selectDate(day) {
     if (saving()) {
-      announce("Tunggu sampai menu selesai disimpan sebelum memilih tanggal.");
+      announce("Please wait until the meal finishes saving before selecting a date.");
       return;
     }
     if (day.week === weekState.week) {
@@ -119,7 +119,7 @@
     loading = true;
     panel.setAttribute("aria-busy", "true");
     syncControls();
-    announce("Memuat kalender...");
+    announce("Loading calendar...");
     let loginUrl = null;
     try {
       const url = new URL(root.dataset.calendarUrl, window.location.origin);
@@ -128,17 +128,17 @@
       const data = await response.json().catch(() => null);
       if (response.status === 401 || response.redirected) {
         loginUrl = data?.login_url || response.url;
-        throw new Error("Sesi masuk berakhir. Masuk lagi untuk melihat kalender.");
+        throw new Error("Session expired. Sign in again to view the calendar.");
       }
       if (!response.ok || !Array.isArray(data?.days) || data.days.length !== 42) {
-        throw new Error(data?.error || "Kalender belum bisa dimuat. Coba tombol bulan lagi.");
+        throw new Error(data?.error || "Calendar could not be loaded. Try the month button again.");
       }
       if (id !== requestId) return;
       calendar = data;
       // A save can finish while this GET is in flight; keep its newer counts.
       if (revision !== startRevision) syncCounts();
       renderCalendar();
-      announce(`Kalender ${calendar.label} ditampilkan.`);
+      announce(`Calendar ${calendar.label} displayed.`);
       if (restoreDateFocus) grid.querySelector(`[data-calendar-date="${selectedDate}"]`)?.focus();
       if (goToday) {
         const today = calendar.days.find(day => day.date === calendar.today);
@@ -150,7 +150,7 @@
     } catch (error) {
       if (error.name !== "AbortError" && id === requestId) {
         announce(error instanceof TypeError
-          ? "Koneksi terputus. Kalender sebelumnya tetap ditampilkan; coba lagi."
+          ? "Connection lost. Previous calendar remains displayed; try again."
           : error.message, true, loginUrl);
       }
     } finally {
@@ -177,7 +177,7 @@
     if (!link || !grid.contains(link) || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (saving()) {
       event.preventDefault();
-      announce("Tunggu sampai menu selesai disimpan sebelum memilih tanggal.");
+      announce("Please wait until the meal finishes saving before selecting a date.");
       return;
     }
     const day = calendar.days.find(day => day.date === link.dataset.calendarDate);

@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "fridge",
     "bookmarks",
     "comments",
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 if DEBUG:

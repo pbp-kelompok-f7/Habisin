@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{% static 'comments/comments.css' %}">
 
 <section id="komentar" class="cm">
-  <h2 class="cm-title">Comment <span class="cm-count">{{ comment_total }}</span></h2>
+  <h2 class="cm-title">Comments <span class="cm-count">{{ comment_total }}</span></h2>
 
   {% for message in messages %}
     {% if 'comment' in message.tags %}<p class="cm-alert" role="alert">{{ message }}</p>{% endif %}
@@ -14,14 +14,14 @@
       <img class="cm-me" src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}&backgroundColor=b6e3f4" alt="{{ user.username }}">
       <form method="post" action="{% url 'comments:add_comment' comment_recipe_id %}" class="cm-form">
         {% csrf_token %}
-        <label for="{{ comment_form.content.id_for_label }}" class="cm-label">Tulis komentar</label>
+        <label for="{{ comment_form.content.id_for_label }}" class="cm-label">Write a comment</label>
         {{ comment_form.content }}
-        <div class="cm-actions"><button type="submit" class="cm-send">Kirim</button></div>
+        <div class="cm-actions"><button type="submit" class="cm-send">Send</button></div>
       </form>
     {% else %}
       <p class="cm-guest">
-        <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}%23komentar">Masuk</a>
-        untuk menulis komentar dan menyukai komentar lain.
+        <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}%23komentar">Sign in</a>
+        to write a comment and like other comments.
       </p>
     {% endif %}
   </div>
@@ -40,13 +40,13 @@
           {% if user.is_authenticated %}
             <form method="post" action="{% url 'comments:toggle_like' comment.id %}">
               {% csrf_token %}
-              <button type="submit" class="cm-like{% if comment.is_liked %} is-liked{% endif %}" aria-pressed="{{ comment.is_liked|yesno:'true,false' }}" aria-label="Suka komentar ini">
+              <button type="submit" class="cm-like{% if comment.is_liked %} is-liked{% endif %}" aria-pressed="{{ comment.is_liked|yesno:'true,false' }}" aria-label="Like this comment">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>
                 {{ comment.like_count }}
               </button>
             </form>
           {% else %}
-            <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}%23komentar" class="cm-like" aria-label="Masuk untuk menyukai">
+            <a href="{% url 'authentication:login' %}?next={{ request.path|urlencode }}%23komentar" class="cm-like" aria-label="Sign in to like">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>
               {{ comment.like_count }}
             </a>
@@ -54,17 +54,17 @@
           {% if comment.user_id == user.id %}
             <form method="post" action="{% url 'comments:delete_comment' comment.id %}">
               {% csrf_token %}
-              <button type="submit" class="cm-delete">Hapus</button>
+              <button type="submit" class="cm-delete">Delete</button>
             </form>
           {% endif %}
         </div>
       </div>
     </article>
   {% empty %}
-    <p class="cm-empty">Belum ada komentar. Jadilah yang pertama berbagi tips untuk resep ini!</p>
+    <p class="cm-empty">No comments yet. Be the first to share tips for this recipe!</p>
   {% endfor %}
 
   {% if comment_has_more %}
-    <a href="?semua=1#komentar" class="cm-more">Lihat komentar lainnya</a>
+    <a href="?semua=1#komentar" class="cm-more">View more comments</a>
   {% endif %}
 </section>

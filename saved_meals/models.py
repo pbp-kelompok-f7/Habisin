@@ -36,7 +36,7 @@ class SavedMeal(models.Model):
             'protein_grams': self.protein_grams,
             'calories_kcal': self.calories_kcal,
             'ingredients': self.ingredients or '-',
-            'notes': (self.notes or '-') if include_private else 'Login untuk melihat catatan pribadi',
+            'notes': (self.notes or '-') if include_private else 'Log in to view personal notes',
             'status': self.status,
             'is_favorite': self.is_favorite,
         }

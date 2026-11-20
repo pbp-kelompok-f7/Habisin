@@ -5,9 +5,9 @@ from bookmarks.models import SavedRecipe
 from discovery.views import _preview_recipes
 
 STEPS = [
-    ('1', 'Catat isi kulkas', 'Masukkan bahan yang kamu punya beserta tanggal kedaluwarsanya.'),
-    ('2', 'Dapatkan Rekomendasi Resep', 'Habisin mencarikan resep yang memakai bahan paling banyak dari kulkasmu.'),
-    ('3', 'Rencanakan & Pantau', 'Susun menu mingguan dan lihat berapa banyak makanan yang berhasil kamu selamatkan.'),
+    ('1', 'Track your fridge', 'Enter the ingredients you have along with their expiration dates.'),
+    ('2', 'Get Recipe Recommendations', 'Habisin finds recipes that use the most ingredients from your fridge.'),
+    ('3', 'Plan & Track', 'Build your weekly menu and see how much food you have rescued.'),
 ]
 LANDING_RECIPES = 3
 RECIPES_CACHE_KEY = 'home:landing_recipes'

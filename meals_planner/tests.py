@@ -161,7 +161,7 @@ class MealsPlannerTests(TestCase):
         self.lookup.side_effect = lambda meal_id: None
         response = self.update(recipe="mealdb:52772")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Resep tidak tersedia", response.json()["error"])
+        self.assertIn("Recipe is not available", response.json()["error"])
         self.assertFalse(PlannedMeal.objects.exists())
 
     def test_snapshot_ids_cannot_be_reused_as_source_choices(self):

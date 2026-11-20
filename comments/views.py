@@ -54,7 +54,7 @@ def add_comment(request, recipe_id):
         comment.user = request.user
         comment.save()
     else:
-        messages.error(request, form.errors.get("content", ["Komentar tidak valid."])[0], extra_tags="comment")
+        messages.error(request, form.errors.get("content", ["Invalid comment."])[0], extra_tags="comment")
     return redirect(recipe_url(recipe_id))
 
 

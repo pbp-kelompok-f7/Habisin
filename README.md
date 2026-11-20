@@ -62,54 +62,60 @@ PWS: **http://risyad-athaya-habisin.pws.cs.ui.ac.id/**
 
 Figma: **https://www.figma.com/design/bCa4vaUjhrcnm6TIb0zDP1/UI-UX?node-id=0-1&t=2KoM5TMBpsDAKhss-1**
 
-## Menjalankan project lokal (Windows PowerShell)
+## ⚙️ How to Run
+1. **Clone this repository** from terminal using the following command
+   ```bash
+   $ git clone https://github.com/pbp-kelompok-f7/Habisin.git
+   ```
+2. **Create and activate the virtual environment** using the following command in the project root directory
+   ```bash
+   $ python -m venv env
+   ```
+   then activate it
+   ```bash
+   $ env\Scripts\activate
+   ```
+3. **Install the dependencies** on requirements.txt using the following command
+   ```bash
+   $ pip install -r requirements.txt
+   ```
 
-Jalankan dari root repository `Habisin-repo`, tempat `manage.py` berada:
+4. **Migrate** using the following command
+   ```bash
+   $ python manage.py migrate
+   ``` 
 
-```powershell
-py -m venv env
-.\env\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item .env.example .env
-.\env\Scripts\python.exe manage.py migrate
-.\env\Scripts\python.exe manage.py runserver
-```
+5. **Run the server** using the following command
+   ```bash
+   $ python manage.py runserver
+   ```
+   then open your browser and go to http://127.0.0.1:8000/ to view the website.
 
-Isi `SECRET_KEY` di `.env` dengan nilai acak untuk lingkungan lokal. File `.env`,
-virtual environment, database lokal, dan log server tidak masuk Git.
-Buka http://127.0.0.1:8000/ setelah server berjalan.
+## AI Disclosure
 
-### CSS dan Tailwind
+Dalam pengembangan website, kami menggunakan beberapa AI Tools, seperti **ChatGPT/Codex, Claude, dan Gemini** untuk 
+membantu penyusunan dan revisi kode, debugging, penyusunan pengujian, serta penjelasan alur program.
 
-Tailwind mengatur tampilan komponen bersama dan modul lain. Halaman beranda memakai
-CSS di `home/static/home/css/landing.css`. CSS Tailwind hasil build sudah disimpan
-di `theme/static/css/dist/styles.css`, sehingga menjalankan server tidak perlu Node/npm.
+### Tujuan dan strategi penggunaan AI
 
-Kalau mengubah kelas Tailwind atau `theme/static_src/src/styles.css`, build ulang:
+Permintaan kepada AI diberikan secara bertahap berdasarkan kebutuhan fitur, kode yang tersedia, dan pesan error.
 
-```powershell
-.\env\Scripts\python.exe manage.py tailwind install
-.\env\Scripts\python.exe manage.py tailwind build
-```
+Strategi yang digunakan meliputi:
 
-Commit CSS hasil build bersama perubahan template agar tampilannya tersedia di PWS.
+- Meminta pemeriksaan repository sebelum memberikan saran perubahan.
+- Menyelaraskan kode dengan pembaruan anggota kelompok.
+- Memecah pekerjaan menjadi perubahan yang memiliki tujuan jelas.
+- Memberikan screenshot ketika hasil tampilan berbeda dari yang diharapkan.
+- Meminta pengujian untuk penyimpanan data, pemisahan akun, validasi input, dan kalender.
+- Memperbarui penjelasan ketika implementasi berubah, termasuk setelah integrasi TheMealDB.
 
-### Push dan deployment
+### Keterbatasan AI yang ditemukan
 
-```powershell
-git push origin feature/landing-page
-```
+AI dapat memberikan penjelasan berdasarkan kondisi kode yang sudah berubah. Dalam proyek kelompok, perubahan dari 
+anggota lain dapat membuat dokumentasi sebelumnya tidak lagi sesuai. Karena itu, penjelasan fitur perlu dibandingkan 
+kembali dengan implementasi terbaru. AI juga tidak dapat menyimpulkan kondisi browser hanya dari kode. File CSS di server dapat sudah benar, sementara 
+browser masih menggunakan versi lama dari cache.
 
-Branch fitur digunakan untuk review sebelum masuk `main`. Push GitHub belum otomatis
-men-deploy PWS karena repo ini belum memiliki workflow deployment. Pasang remote `pws`
-sesuai Project Command di dashboard PWS. Setelah perubahan digabung ke `main`:
-
-```powershell
-git switch main
-git pull --ff-only origin main
-git push pws main:master
-```
-
-PWS membutuhkan `SECRET_KEY` serta variabel database yang sesuai ketika
-`PRODUCTION=True`. `Procfile` menjalankan migrasi dan Gunicorn untuk deployment.
-
-
+Selain itu, pengujian yang disusun dengan bantuan AI hanya mencakup skenario yang dituliskan. Pengujian dengan respons 
+API tiruan tidak membuktikan bahwa koneksi internet, layanan eksternal, dan seluruh kemungkinan interaksi pengguna 
+selalu bekerja.

@@ -1,9 +1,9 @@
 // Dialog pilih kategori bookmark untuk tombol [data-bookmark], dipakai di halaman Temukan Resep dan detail resep
 (() => {
   const MESSAGES = {
-    loadingCategories: "Memuat kategori…",
-    bookmarkError: "Gagal menyimpan resep. Coba lagi.",
-    categoriesError: "Gagal memuat kategori. Tutup lalu coba lagi.",
+    loadingCategories: "Loading categories…",
+    bookmarkError: "Failed to save recipe. Try again.",
+    categoriesError: "Failed to load categories. Close and try again.",
   };
 
   // Dialog sengaja tidak bisa ditutup dengan Esc atau klik di luar, hanya lewat Batal/Simpan

@@ -1,5 +1,5 @@
 DAYS = [
-    ("Sen", "Senin"), ("Sel", "Selasa"), ("Rab", "Rabu"),
-    ("Kam", "Kamis"), ("Jum", "Jumat"), ("Sab", "Sabtu"), ("Min", "Minggu"),
+    ("Mon", "Monday"), ("Tue", "Tuesday"), ("Wed", "Wednesday"),
+    ("Thu", "Thursday"), ("Fri", "Friday"), ("Sat", "Saturday"), ("Sun", "Sunday"),
 ]
-SLOTS = [("breakfast", "Sarapan"), ("lunch", "Makan Siang"), ("dinner", "Makan Malam")]
+SLOTS = [("breakfast", "Breakfast"), ("lunch", "Lunch"), ("dinner", "Dinner")]

@@ -20,8 +20,8 @@ from .models import PlannedMeal
 
 MEALDB_CHOICE = re.compile(r"mealdb:([1-9][0-9]{0,9})")
 MONTHS = (
-    "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
 )
 
 
@@ -31,14 +31,14 @@ def week_start(day):
 
 def parse_week(value):
     if not isinstance(value, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
-        raise ValueError("Pilih minggu dengan tanggal Senin yang valid.")
+        raise ValueError("Please select a week with a valid Monday date.")
     try:
         week = date.fromisoformat(value)
     except ValueError:
-        raise ValueError("Pilih minggu dengan tanggal Senin yang valid.") from None
+        raise ValueError("Please select a week with a valid Monday date.") from None
     # Leave space for the previous/next week navigation and all seven day dates.
     if week.weekday() != 0 or not date(2, 1, 1) <= week <= date(9998, 12, 24):
-        raise ValueError("Pilih minggu dengan tanggal Senin yang valid.")
+        raise ValueError("Please select a week with a valid Monday date.")
     return week
 
 
@@ -71,7 +71,7 @@ def unique_ingredients(names):
 
 
 def saved_recipe_ids(user, recipe_ids):
-    # "Tersimpan" covers both the Saved Meals list and any bookmark category.
+    # "Saved" covers both the Saved Meals list and any bookmark category.
     ids = [int(recipe_id) for recipe_id in recipe_ids]
     saved = set(
         SavedMeal.objects.filter(user=user, status="SAVED", recipe_id__in=ids).values_list("recipe_id", flat=True)
@@ -181,7 +181,7 @@ def set_meal(user, meal_date, slot, recipe_id):
     match = MEALDB_CHOICE.fullmatch(recipe_id)
     recipe = mealdb_recipe(match[1]) if match else None
     if recipe is None:
-        raise ValueError("Resep tidak tersedia. Silakan pilih resep lain.")
+        raise ValueError("Recipe is not available. Please choose another recipe.")
 
     PlannedMeal.objects.update_or_create(
         user=user,

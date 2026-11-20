@@ -19,17 +19,17 @@
       data-recipes-url="{% url 'bookmarks:category_recipes' 0 %}"
       data-detail-url="{% url 'discovery:show_recipe_detail' 0 %}">
   <h1 class="md:text-900 text-left">Bookmarks</h1>
-  <span class="mb-8">Resep yang kamu simpan, dikelompokkan sesuai kategorimu.</span>
+  <span class="mb-8">Recipes you saved, organized by your categories.</span>
   <div class="flex flex-col md:flex-row md:items-start gap-6 w-full">
     <aside class="hidden md:flex md:sticky md:top-8 w-72 shrink-0 flex-col gap-4 p-6 rounded-xl bg-background-white border-2 border-border-color" aria-labelledby="category-heading">
       <div class="flex items-center justify-between">
-        <h2 id="category-heading" class="text-300">Kategori</h2>
+        <h2 id="category-heading" class="text-300">Categories</h2>
         <button type="button"
                 commandfor="create-category-dialog"
                 command="show-modal"
                 class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 bg-brand-green text-background font-bold transition hover:opacity-90 cursor-pointer">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          Baru
+          New
         </button>
       </div>
       <ul class="flex flex-col gap-1">
@@ -38,7 +38,7 @@
         {% endfor %}
       </ul>
     </aside>
-    <nav class="md:hidden flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" aria-label="Kategori">
+    <nav class="md:hidden flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" aria-label="Categories">
       {% for category in categories %}
       <a href="?category={{ category.id }}"
          class="shrink-0 rounded-full px-4 py-2 border-2 border-brand-green bg-background-white font-bold whitespace-nowrap transition-colors aria-[current=page]:bg-brand-green aria-[current=page]:text-background"
@@ -49,7 +49,7 @@
       <button type="button"
               commandfor="create-category-dialog"
               command="show-modal"
-              aria-label="Kategori baru"
+              aria-label="New category"
               class="shrink-0 grid place-items-center h-11 w-11 rounded-full border-2 border-dashed border-brand-green cursor-pointer">
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       </button>
@@ -59,16 +59,16 @@
         <div class="flex items-center gap-2 min-w-0">
           <div class="min-w-0">
             <h2 id="selected-category-heading" class="text-300 md:text-500 truncate">{{ selected_category.name }}</h2>
-            <span class="text-muted"><span data-count-for="{{ selected_category.id }}">{{ selected_category.recipe_count }}</span> resep tersimpan</span>
+            <span class="text-muted"><span data-count-for="{{ selected_category.id }}">{{ selected_category.recipe_count }}</span> saved recipes</span>
           </div>
           {% if not selected_category.is_default %}
           <div class="md:hidden flex gap-1 ml-auto shrink-0">
-            <button type="button" aria-label="Ganti nama {{ selected_category.name }}" commandfor="rename-category-dialog" command="show-modal"
+            <button type="button" aria-label="Rename {{ selected_category.name }}" commandfor="rename-category-dialog" command="show-modal"
                     data-rename-category="{{ selected_category.id }}" data-category-name="{{ selected_category.name }}"
                     class="grid h-10 w-10 place-items-center rounded-full border-2 border-border-color bg-background-white cursor-pointer">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
             </button>
-            <button type="button" aria-label="Hapus {{ selected_category.name }}" commandfor="delete-category-dialog" command="show-modal"
+            <button type="button" aria-label="Delete {{ selected_category.name }}" commandfor="delete-category-dialog" command="show-modal"
                     data-delete-category="{{ selected_category.id }}" data-category-name="{{ selected_category.name }}"
                     class="grid h-10 w-10 place-items-center rounded-full border-2 border-border-color bg-background-white transition-colors hover:bg-brand-red hover:border-brand-red hover:text-background cursor-pointer">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
@@ -80,8 +80,8 @@
           <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input type="search"
                  name="recipe"
-                 placeholder="Cari di {{ selected_category.name }}"
-                 aria-label="Cari bahan atau resep di {{ selected_category.name }}"
+                 placeholder="Search in {{ selected_category.name }}"
+                 aria-label="Search ingredients or recipes in {{ selected_category.name }}"
                  autocomplete="off"
                  {% if not selected_category.recipe_count %}disabled{% endif %}
                  class="w-full lg:w-[28ch] rounded-xl p-3 pl-10 bg-background-white disabled:opacity-60 disabled:cursor-not-allowed">
@@ -95,8 +95,8 @@
         {% endfor %}
       </div>
       {# Kelasnya sama dengan PAGE_BUTTON_CLASS / CURRENT_PAGE_CLASS di bookmarks.js #}
-      <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Halaman resep"{% if num_pages <= 1 %} hidden{% endif %}>
-        <button type="button" aria-label="Halaman sebelumnya" data-page="{{ page|add:"-1" }}"{% if not has_previous %} disabled{% endif %}
+      <nav id="recipe-pagination" class="flex flex-row flex-wrap justify-center items-center gap-2" aria-label="Recipe pages"{% if num_pages <= 1 %} hidden{% endif %}>
+        <button type="button" aria-label="Previous page" data-page="{{ page|add:"-1" }}"{% if not has_previous %} disabled{% endif %}
                 class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer{% if not has_previous %} opacity-40 cursor-not-allowed{% endif %}">‹</button>
         {% for number in page_range %}
           {% if number is None %}
@@ -107,16 +107,16 @@
           <button type="button" data-page="{{ number }}" class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer">{{ number }}</button>
           {% endif %}
         {% endfor %}
-        <button type="button" aria-label="Halaman berikutnya" data-page="{{ page|add:"1" }}"{% if not has_next %} disabled{% endif %}
+        <button type="button" aria-label="Next page" data-page="{{ page|add:"1" }}"{% if not has_next %} disabled{% endif %}
                 class="rounded-xl px-4 py-3 bg-background-white border-2 border-border-color font-bold cursor-pointer{% if not has_next %} opacity-40 cursor-not-allowed{% endif %}">›</button>
       </nav>
       <template id="recipe-card-template">{% include "discovery/components/recipe_card.html" with removable=True recipe=None %}</template>
       {% else %}
       <div class="flex flex-col items-center gap-3 px-6 py-16 rounded-xl border-2 border-dashed border-border-color text-center">
         <svg class="h-12 w-12 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
-        <h3>Belum ada resep di sini</h3>
-        <p class="text-muted max-w-[40ch]">Simpan resep ke kategori ini dari halaman Temukan Resep atau detail resep.</p>
-        <a href="{% url 'discovery:show_discovery' %}" class="mt-2 rounded-xl px-4 py-3 bg-brand-green text-background font-bold transition hover:opacity-90">Temukan Resep</a>
+        <h3>No recipes here yet</h3>
+        <p class="text-muted max-w-[40ch]">Save recipes to this category from the Discover Recipes or recipe detail page.</p>
+        <a href="{% url 'discovery:show_discovery' %}" class="mt-2 rounded-xl px-4 py-3 bg-brand-green text-background font-bold transition hover:opacity-90">Discover Recipes</a>
       </div>
       {% endif %}
     </section>

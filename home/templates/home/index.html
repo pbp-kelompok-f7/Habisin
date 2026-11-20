@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block lang %}id{% endblock %}
-{% block title %}Habisin — Masak dari yang ada, habiskan tanpa sisa{% endblock %}
+{% block lang %}en{% endblock %}
+{% block title %}Habisin — Cook what you have, waste nothing{% endblock %}
 {% block meta %}
 <link rel="stylesheet" href="{% static 'home/css/landing.css' %}">
 {% if user.is_authenticated %}<script defer src="{% static 'discovery/js/bookmark_dialog.js' %}"></script>{% endif %}
@@ -20,18 +20,18 @@
 <main>
 <section class="container hero">
   <div class="hero-text">
-    <p class="eyebrow">Kurangi sisa makanan di rumah</p>
-    <h1>Masak dari yang ada, habiskan tanpa sisa.</h1>
-    <p class="lead">Catat isi kulkasmu, dapatkan rekomendasi resep dari bahan yang tersisa, dan rencanakan menu mingguan. Hemat uang, kurangi limbah makanan.</p>
-    <div class="cta-row"><a href="{% url 'authentication:register' %}" class="btn btn-dark btn-lg">Mulai Gratis</a><a href="#resep" class="btn btn-outline btn-lg">Lihat Resep</a></div>
-    <p class="proof"><img src="{% static 'home/img/avatars.png' %}" alt="">Dipakai <strong>2.000+ keluarga</strong> Indonesia</p>
+    <p class="eyebrow">Reduce food waste at home</p>
+    <h1>Cook what you have, waste nothing.</h1>
+    <p class="lead">Track what's in your fridge, get recipe recommendations from leftover ingredients, and plan your weekly meals. Save money, reduce food waste.</p>
+    <div class="cta-row"><a href="{% url 'authentication:register' %}" class="btn btn-dark btn-lg">Get Started Free</a><a href="#resep" class="btn btn-outline btn-lg">Browse Recipes</a></div>
+    <p class="proof"><img src="{% static 'home/img/avatars.png' %}" alt="">Used by <strong>2,000+ families</strong> in Indonesia</p>
   </div>
-  <div class="hero-art"><img src="{% static 'home/img/hero.png' %}" alt="Sayuran segar"></div>
+  <div class="hero-art"><img src="{% static 'home/img/hero.png' %}" alt="Fresh vegetables"></div>
 </section>
 
 <section class="container steps">
-  <h2 class="center">Cara Kerja Habisin</h2>
-  <p class="sub center">Tiga langkah sederhana untuk dapur tanpa sisa.</p>
+  <h2 class="center">How Habisin Works</h2>
+  <p class="sub center">Three simple steps to a zero-waste kitchen.</p>
   <div class="grid3">
     {% for n, title, desc in steps %}
     <article class="card step"><span class="num">{{ n }}</span><h3>{{ title }}</h3><p>{{ desc }}</p></article>
@@ -41,8 +41,8 @@
 
 <section class="container recipes" id="resep">
   <div class="head">
-    <div><h2>Resep dari Sisa Bahan</h2><p class="sub">Inspirasi masakan rumahan yang hemat!</p></div>
-    <a href="{% url 'discovery:show_discovery' %}" class="btn btn-outline">Lihat Semua Resep</a>
+    <div><h2>Recipes from Leftover Ingredients</h2><p class="sub">Budget-friendly home cooking inspiration!</p></div>
+    <a href="{% url 'discovery:show_discovery' %}" class="btn btn-outline">View All Recipes</a>
   </div>
   {% if recipes %}
   <div class="grid3">
@@ -52,8 +52,8 @@
       <div class="body">
         <h3><a href="{% url 'discovery:show_recipe_detail' r.id %}">{{ r.name }}</a></h3>
         <div class="meta">
-          <span><svg class="ico-bahan" viewBox="0 0 64 64" aria-hidden="true"><path d="M19,5c-0.552,0-1,0.448-1,1v5c0,0.552,0.448,1,1,1s1-0.448,1-1V6C20,5.448,19.552,5,19,5z"/><path d="M45,19.135V15c0-0.552-0.448-1-1-1s-1,0.448-1,1v4.135c0,0.552,0.448,1,1,1S45,19.687,45,19.135"/><path d="M28,17c0-0.713,0-1.392,0-1.941c-0.006-2.19-1.809-3.939-4-3.941H14c-2.191,0.002-3.994,1.751-4,3.941 c0,0.55,0,1.229,0,1.941H28z"/><path d="M7.551,19C7.206,19.588,7.001,20.268,7,21v34c0.004,2.207,1.793,3.996,4,4h16c2.207-0.004,3.996-1.793,4-4 V21c-0.001-0.732-0.206-1.412-0.551-2H7.551z M13,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V22c0-0.552,0.448-1,1-1s1,0.448,1,1V54z"/><path d="M52,24c0-0.571,0-1.094,0-1.509c0-1.016-0.519-1.906-1.251-2.495c-0.736-0.595-1.702-0.937-2.749-0.938h-8 c-1.046,0.001-2.012,0.343-2.749,0.938C36.519,20.585,36,21.475,36,22.491c0,0.415,0,0.938,0,1.509H52z"/><path d="M34.509,26c-0.32,0.569-0.508,1.223-0.509,1.923V55c0.004,2.207,1.793,3.996,4,4h12 c2.207-0.004,3.996-1.793,4-4V27.923c-0.001-0.701-0.189-1.354-0.509-1.923H34.509z M40,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V29 c0-0.552,0.448-1,1-1s1,0.448,1,1V54z"/></svg>{{ r.ingredient_count }} bahan</span>
-          <button type="button" class="heart" aria-label="Simpan {{ r.name }} ke bookmark" aria-haspopup="dialog"
+          <span><svg class="ico-bahan" viewBox="0 0 64 64" aria-hidden="true"><path d="M19,5c-0.552,0-1,0.448-1,1v5c0,0.552,0.448,1,1,1s1-0.448,1-1V6C20,5.448,19.552,5,19,5z"/><path d="M45,19.135V15c0-0.552-0.448-1-1-1s-1,0.448-1,1v4.135c0,0.552,0.448,1,1,1S45,19.687,45,19.135"/><path d="M28,17c0-0.713,0-1.392,0-1.941c-0.006-2.19-1.809-3.939-4-3.941H14c-2.191,0.002-3.994,1.751-4,3.941 c0,0.55,0,1.229,0,1.941H28z"/><path d="M7.551,19C7.206,19.588,7.001,20.268,7,21v34c0.004,2.207,1.793,3.996,4,4h16c2.207-0.004,3.996-1.793,4-4 V21c-0.001-0.732-0.206-1.412-0.551-2H7.551z M13,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V22c0-0.552,0.448-1,1-1s1,0.448,1,1V54z"/><path d="M52,24c0-0.571,0-1.094,0-1.509c0-1.016-0.519-1.906-1.251-2.495c-0.736-0.595-1.702-0.937-2.749-0.938h-8 c-1.046,0.001-2.012,0.343-2.749,0.938C36.519,20.585,36,21.475,36,22.491c0,0.415,0,0.938,0,1.509H52z"/><path d="M34.509,26c-0.32,0.569-0.508,1.223-0.509,1.923V55c0.004,2.207,1.793,3.996,4,4h12 c2.207-0.004,3.996-1.793,4-4V27.923c-0.001-0.701-0.189-1.354-0.509-1.923H34.509z M40,54c0,0.553-0.448,1-1,1s-1-0.447-1-1V29 c0-0.552,0.448-1,1-1s1,0.448,1,1V54z"/></svg>{{ r.ingredient_count }} ingredients</span>
+          <button type="button" class="heart" aria-label="Save {{ r.name }} to bookmarks" aria-haspopup="dialog"
                   aria-pressed="{% if r.bookmarked %}true{% else %}false{% endif %}"
                   data-bookmark="{{ r.id }}" data-recipe-name="{{ r.name }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
         </div>
@@ -62,14 +62,14 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="recipe-empty">Resep belum bisa dimuat saat ini. <a href="{% url 'discovery:show_discovery' %}">Lihat halaman Resep</a></p>
+  <p class="recipe-empty">Recipes cannot be loaded right now. <a href="{% url 'discovery:show_discovery' %}">Go to Recipes page</a></p>
   {% endif %}
 </section>
 
 <section class="container">
   <div class="banner">
-    <div><h2>Mulai dari sisa bahan di kulkasmu hari ini.</h2><p>Daftar gratis dan selamatkan makanan pertamamu dalam 5 menit.</p></div>
-    <a href="{% url 'authentication:register' %}" class="btn btn-orange">Daftar Sekarang</a>
+    <div><h2>Start with what's left in your fridge today.</h2><p>Sign up for free and rescue your first meal in 5 minutes.</p></div>
+    <a href="{% url 'authentication:register' %}" class="btn btn-orange">Sign Up Now</a>
   </div>
 </section>
 </main>
