@@ -31,6 +31,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("PRODUCTION", "False").lower() == "false"
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "risyad-athaya-habisin.pws.cs.ui.ac.id"]
+if DEBUG:
+    ALLOWED_HOSTS.append("10.0.2.2")  # The Android emulator's alias for the host.
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "tailwind",
     "theme",
     "home",
