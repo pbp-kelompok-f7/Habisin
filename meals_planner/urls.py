@@ -1,10 +1,11 @@
 from django.urls import path
 
-from . import calendar_views, views
+from . import api_views, calendar_views, views
 
 app_name = "meals_planner"
 
 urlpatterns = [
+    path("api/recipes/", api_views.public_recipes, name="public_recipes"),
     path("", views.show_planner, name="show_planner"),
     path("menu/", views.update_meal, name="update_meal"),
     path("recipes/", views.search_recipes, name="search_recipes"),

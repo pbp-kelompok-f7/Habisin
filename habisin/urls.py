@@ -16,6 +16,7 @@ urlpatterns = [
     path('comments/', include('comments.urls')),
     path("api/auth/", include("authentication.api_urls")),
     path("api/fridge/", include("fridge.api_urls")),
+    path("api/meals-planner/", include("meals_planner.api_urls")),
 ]
 
 if settings.DEBUG:
