@@ -30,9 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("PRODUCTION", "False").lower() == "false"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "risyad-athaya-habisin.pws.cs.ui.ac.id"]
-if DEBUG:
-    ALLOWED_HOSTS.append("10.0.2.2")  # The Android emulator's alias for the host.
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "risyad-athaya-habisin.pws.cs.ui.ac.id"]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 
@@ -45,7 +43,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
     "tailwind",
     "theme",
     "home",
@@ -56,6 +53,8 @@ INSTALLED_APPS = [
     "fridge",
     "bookmarks",
     "comments",
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 if DEBUG:
@@ -180,3 +179,10 @@ if os.getenv("EMAIL_HOST"):
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+}
