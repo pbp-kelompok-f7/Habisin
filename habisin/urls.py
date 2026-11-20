@@ -14,6 +14,8 @@ urlpatterns = [
     path("auth/", include("authentication.urls")),
     path("kulkas/", include("fridge.urls")),
     path('comments/', include('comments.urls')),
+    path("api/auth/", include("authentication.api_urls")),
+    path("api/fridge/", include("fridge.api_urls")),
 ]
 
 if settings.DEBUG:
