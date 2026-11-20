@@ -14,7 +14,7 @@ class PublicRecipeTests(SimpleTestCase):
         cache.delete(key)
         self.addCleanup(cache.delete, key)
 
-    @patch("meals_planner.api.preview_recipes")
+    @patch("meals_planner.api_views.preview_recipes")
     def test_catalogue_shares_only_public_fields_and_reuses_feed(self, preview):
         preview.return_value = [{
             "id": "53254", "name": "Ezme", "image": "https://example.org/ezme.jpg",
@@ -30,14 +30,14 @@ class PublicRecipeTests(SimpleTestCase):
         self.assertEqual(self.client.get(self.url).json(), response.json())
         preview.assert_called_once_with()
 
-    @patch("meals_planner.api.preview_recipes", return_value=[])
+    @patch("meals_planner.api_views.preview_recipes", return_value=[])
     def test_upstream_outage_still_serves_a_public_snapshot(self, preview):
         recipes = self.client.get(self.url).json()["recipes"]
         self.assertGreater(len(recipes), 0)
         self.assertEqual(len({item["id"] for item in recipes}), len(recipes))
         self.assertTrue(all(item["ingredients"] and item["name"] for item in recipes))
 
-    @patch("meals_planner.api.preview_recipes")
+    @patch("meals_planner.api_views.preview_recipes")
     def test_mutations_are_rejected(self, preview):
         for method in ("post", "put", "patch", "delete"):
             with self.subTest(method=method):
